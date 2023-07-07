@@ -3,8 +3,12 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
+const cors = require('cors')
+const route = require('./route')
+const { addUser, findUser, getRoomUsers } = require("./users");
 
-const m = (name, text, id) => ({name, text, id})
+app.use(cors({origin: '*'}))
+app.use(route)
 
 const PORT = 3000;
 
@@ -17,14 +21,58 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-    socket.on('userJoined', ((data, cb) => {
-        if (!data.name || !data.room) {
+    socket.on('join', (({name, room}, cb) => {
+        if (!name || !room) {
             return cb('Данные некорректны')
         }
+
         cb({userId: socket.id})
 
-        socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
+        socket.join(room)
+
+        const { user, isExist } = addUser({name, room})
+
+        const userMessage = isExist ? `Первый вход ${user.name}` : `Это уже не первый вход ${user.name}`
+
+        socket.emit('message', {
+            data: {
+                user: {
+                    name: 'admin',
+                },
+                message: userMessage
+            }
+        })
+
+        socket.broadcast.to(user.room).emit('message', {
+            data: {
+                user: {
+                    name: 'admin',
+                },
+                message: `${user.name} подключился`
+            }
+        })
+
+        io.to(user.room).emit('joinRoom', {
+            data: {
+                users: getRoomUsers(user.room)
+            }
+        })
     }))
+
+    socket.on('message', ({message, params}) => {
+        const user = findUser(params);
+
+        if (user) {
+            io.to(user.room).emit('message', {
+                data: {
+                    user,
+                    message
+                }
+            })
+        }
+    })
+
+    socket.on('disconnect', (() => {}))
 });
 
 
