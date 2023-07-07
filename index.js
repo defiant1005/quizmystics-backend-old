@@ -10,6 +10,7 @@ const { addUser, findUser, getRoomUsers } = require("./users");
 app.use(cors({origin: '*'}))
 app.use(route)
 
+
 const PORT = 3000;
 
 const io = new Server(server, {
@@ -21,7 +22,7 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-    socket.on('join', (({name, room}, cb) => {
+    socket.on('createRoom', (({name, room}, cb) => {
         if (!name || !room) {
             return cb('Данные некорректны')
         }
@@ -30,7 +31,25 @@ io.on('connection', (socket) => {
 
         socket.join(room)
 
-        const { user, isExist } = addUser({name, room})
+        const { user, isExist } = addUser({name, room, userId: socket.id}, true)
+
+        io.to(user.room).emit('updateUserList', {
+            data: {
+                users: getRoomUsers(user.room)
+            }
+        })
+    }))
+
+    socket.on('connectingExistingRoom', (({name, room}, cb) => {
+        if (!name || !room) {
+            return cb('Данные некорректны')
+        }
+
+        cb({userId: socket.id})
+
+        socket.join(room)
+
+        const { user, isExist } = addUser({name, room, userId: socket.id})
 
         const userMessage = isExist ? `Первый вход ${user.name}` : `Это уже не первый вход ${user.name}`
 
@@ -52,7 +71,7 @@ io.on('connection', (socket) => {
             }
         })
 
-        io.to(user.room).emit('joinRoom', {
+        io.to(user.room).emit('updateUserList', {
             data: {
                 users: getRoomUsers(user.room)
             }
@@ -70,6 +89,11 @@ io.on('connection', (socket) => {
                 }
             })
         }
+    })
+
+    socket.on('startGame', ({room}, cb) => {
+        io.to(room).emit('startGame');
+
     })
 
     socket.on('disconnect', (() => {}))

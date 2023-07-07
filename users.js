@@ -10,8 +10,11 @@ const findUser = (user) => {
 }
 
 
-const addUser = (user) => {
+const addUser = (user, isRoomAdmin = false) => {
     const isExist = findUser(user);
+    if (isRoomAdmin) {
+        user.isRoomAdmin = true
+    }
 
     if (!isExist) {
         users.push(user)
