@@ -92,13 +92,14 @@ io.on('connection', (socket) => {
     })
 
     socket.on('startGame', ({room}, cb) => {
-        io.to(room).emit('startGame');
+        io.to(room).emit('startGame', {
+            data: { room }
+        });
 
     })
 
     socket.on('disconnect', (() => {}))
 });
-
 
 
 server.listen(PORT, () => {
