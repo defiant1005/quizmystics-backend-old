@@ -1,17 +1,38 @@
+require('dotenv').config()
+
 const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const cors = require('cors')
-const route = require('./routes/route')
 const { addUser, findUser, getRoomUsers } = require("./users");
+const PORT = process.env.PORT || 3000;
+const sequelize = require('./db')
+const models = require('./models/models')
+const router = require('./routes/index')
+const errorHandling = require('./middleware/ErrorHandlingMiddleware')
 
 app.use(cors({origin: '*'}))
-app.use(route)
+app.use(express.json())
+app.use('/api', router)
+
+//Обработка ошибок последний middleware
+app.use(errorHandling)
+
+const start = async () => {
+    try {
+        await sequelize.authenticate()
+        await sequelize.sync()
+        server.listen(PORT, () => {
+            console.log(`listening on *:${PORT}`);
+        });
+    } catch (e) {
+        console.log(e)
+    }
+}
 
 
-const PORT = 3000;
 
 const io = new Server(server, {
     cors: {
@@ -102,6 +123,4 @@ io.on('connection', (socket) => {
 });
 
 
-server.listen(PORT, () => {
-    console.log(`listening on *:${PORT}`);
-});
+start()
