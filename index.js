@@ -4,7 +4,7 @@ const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const cors = require('cors')
-const route = require('./route')
+const route = require('./routes/route')
 const { addUser, findUser, getRoomUsers } = require("./users");
 
 app.use(cors({origin: '*'}))
