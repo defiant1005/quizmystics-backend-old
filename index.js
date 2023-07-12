@@ -13,7 +13,14 @@ const models = require('./models/models')
 const router = require('./routes/index')
 const errorHandling = require('./middleware/ErrorHandlingMiddleware')
 
-app.use(cors({origin: '*'}))
+const issue2options = {
+    origin: true,
+    methods: ["POST"],
+    credentials: true,
+    maxAge: 3600
+};
+
+app.use(cors(issue2options))
 app.use(express.json())
 app.use('/api', router)
 
