@@ -1,4 +1,5 @@
 const {Category} = require("../models/models");
+const ApiError = require("../error/ApiError");
 
 class CategoriesController {
     async createCategory(req, res) {
@@ -20,8 +21,17 @@ class CategoriesController {
         }))
     }
 
-    async deleteCategory(req, res) {
-
+    async deleteCategory(req, res, next) {
+        try {
+            const {id} = req.params
+            const category = await Category.findOne({
+                where: {id}
+            })
+            await category.destroy();
+            return res.json({message: 'ok'})
+        } catch (e) {
+            return next(ApiError.badRequest('Что-то пошло не так'))
+        }
     }
 }
 

@@ -1,13 +1,13 @@
 const ApiError = require('../error/ApiError')
 const bcrypt = require('bcrypt')
 const JWT = require('jsonwebtoken')
-const {User, Category} = require('../models/models')
+const {User, Category, Question} = require('../models/models')
 
-const generateJwt = (id, email, role) => {
+const generateJwt = (id, email, roleId) => {
     return JWT.sign({
         id,
         email,
-        role
+        roleId
     }, process.env.SECRET_KEY, {
         expiresIn: '24h'
     })
@@ -15,7 +15,7 @@ const generateJwt = (id, email, role) => {
 
 class UserController {
     async registration(req, res, next) {
-        const {email, password, role} = req.body
+        const {email, password, roleId} = req.body
         if (!email || !password) {
             return next(ApiError.badRequest('Некорректный email или пароль'))
         }
@@ -26,8 +26,8 @@ class UserController {
         }
 
         const hashPassword = await bcrypt.hash(password, 5)
-        const user = await User.create({email, role, password: hashPassword})
-        const token = generateJwt(user.id, user.email, user.role)
+        const user = await User.create({email, roleId, password: hashPassword})
+        const token = generateJwt(user.id, user.email, user.roleId)
 
         return res.json({token})
     }
@@ -42,12 +42,12 @@ class UserController {
         if (!comparePassword) {
             return next(ApiError.badRequest('Неверный логин или пароль'))
         }
-        const token = generateJwt(user.id, user.email, user.role)
+        const token = generateJwt(user.id, user.email, user.roleId)
         return res.json({token})
     }
 
     async check(req, res, next) {
-        const token = generateJwt(req.user.id, req.user.email, req.user.role)
+        const token = generateJwt(req.user.id, req.user.email, req.user.roleId)
         return res.json({token})
     }
 
@@ -57,9 +57,25 @@ class UserController {
             return {
                 email: user.email,
                 id: user.id,
-                role: user.role
+                roleId: user.roleId
             }
         }))
+    }
+
+    async deleteUser(req, res, next) {
+        try {
+            const {id} = req.params
+            const user = await User.findOne({
+                where: {id}
+            })
+            if (user) {
+                await user.destroy();
+            }
+            return res.json({message: 'ok'})
+        } catch (e) {
+            return next(ApiError.internal('Что-то пошло не так'))
+        }
+
     }
 }
 

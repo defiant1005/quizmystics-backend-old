@@ -1,4 +1,5 @@
-const { Question, Category} = require("../models/models");
+const ApiError = require("../error/ApiError");
+const {Question} = require("../models/models");
 
 class QuestionsController {
     async createQuestion(req, res) {
@@ -20,7 +21,17 @@ class QuestionsController {
         return res.json(question)
     }
 
-    async deleteQuestion(req, res) {
+    async deleteQuestion(req, res, next) {
+        try {
+            const {id} = req.params
+            const question = await Question.findOne({
+                where: {id}
+            })
+            await question.destroy();
+            return res.json({message: 'ok'})
+        } catch (e) {
+            return next(ApiError.badRequest('Что-то пошло не так'))
+        }
 
     }
 }
