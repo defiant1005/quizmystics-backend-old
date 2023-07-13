@@ -1,7 +1,7 @@
 const ApiError = require('../error/ApiError')
 const bcrypt = require('bcrypt')
 const JWT = require('jsonwebtoken')
-const {User} = require('../models/models')
+const {User, Category} = require('../models/models')
 
 const generateJwt = (id, email, role) => {
     return JWT.sign({
@@ -49,6 +49,17 @@ class UserController {
     async check(req, res, next) {
         const token = generateJwt(req.user.id, req.user.email, req.user.role)
         return res.json({token})
+    }
+
+    async allUsers(req, res) {
+        const users = await User.findAll()
+        return res.json(users.map(user => {
+            return {
+                email: user.email,
+                id: user.id,
+                role: user.role
+            }
+        }))
     }
 }
 
