@@ -10,7 +10,12 @@ class RolesController {
 
     async getAllRole(req, res) {
         const roles = await Role.findAll()
-        return res.json(roles)
+        return res.json(roles.map(role => {
+            return {
+                id: role.id,
+                role: role.role
+            }
+        }))
     }
 
     async getOneRole(req, res) {

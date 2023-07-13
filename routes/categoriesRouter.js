@@ -3,8 +3,8 @@ const router = new Router();
 const categoriesController = require('../controllers/categoriesController')
 const checkRole = require('../middleware/checkRoleMiddleware')
 
-router.post('/', checkRole('admin'), categoriesController.createCategory)
+router.post('/', checkRole(2), categoriesController.createCategory)
 router.get('/', categoriesController.getAllCategories)
-router.delete('/', checkRole('admin'), categoriesController.deleteCategory)
+router.delete('/', checkRole(2), categoriesController.deleteCategory)
 
 module.exports = router
