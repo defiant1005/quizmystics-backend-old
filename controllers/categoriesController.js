@@ -9,7 +9,12 @@ class CategoriesController {
 
     async getAllCategories(req, res) {
         const categories = await Category.findAll()
-        return res.json(categories)
+        return res.json(categories.map(item => {
+            return {
+                id: item.id,
+                title: item.title,
+            }
+        }))
     }
 
     async deleteCategory(req, res) {

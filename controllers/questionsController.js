@@ -17,6 +17,7 @@ class QuestionsController {
         const question = await Question.findOne({
             where: {id}
         })
+        return res.json(question)
     }
 
     async deleteQuestion(req, res) {
