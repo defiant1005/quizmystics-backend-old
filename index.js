@@ -15,7 +15,7 @@ const errorHandling = require('./middleware/ErrorHandlingMiddleware')
 
 const issue2options = {
     origin: true,
-    methods: ["POST, DELETE"],
+    methods: ["POST, DELETE", "PUT"],
     credentials: true,
     maxAge: 3600
 };

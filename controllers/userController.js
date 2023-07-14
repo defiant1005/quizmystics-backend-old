@@ -62,6 +62,27 @@ class UserController {
         }))
     }
 
+    async editUser(req, res, next) {
+        try {
+            const {id} = req.params
+            const {email, roleId} = req.body
+            const user = await User.findOne({
+                where: {id}
+            })
+            if (user && email && roleId) {
+                user.set({
+                    email: email,
+                    roleId: roleId
+                });
+                await user.save();
+            }
+            return res.json({message: 'ok'})
+        } catch (e) {
+            return next(ApiError.internal(e))
+        }
+
+    }
+
     async deleteUser(req, res, next) {
         try {
             const {id} = req.params
