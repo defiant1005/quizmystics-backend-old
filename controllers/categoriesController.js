@@ -1,9 +1,15 @@
-const {Category} = require("../models/models");
+const {Category, User} = require("../models/models");
 const ApiError = require("../error/ApiError");
 
 class CategoriesController {
-    async createCategory(req, res) {
+    async createCategory(req, res, next) {
         const {title} = req.body
+
+        const isCategoryExist = await Category.findOne({where: {title}})
+        if (isCategoryExist) {
+            return next(ApiError.badRequest('Такая категория уже существует'))
+        }
+
         const category = await Category.create({title})
         return res.json({
             id: category.id,
@@ -21,6 +27,26 @@ class CategoriesController {
         }))
     }
 
+    async editCategory(req, res, next) {
+        try {
+            const {id} = req.params
+            const {title} = req.body
+            const category = await Category.findOne({
+                where: {id}
+            })
+            if (category && title) {
+                category.set({
+                    title: title,
+                });
+                await category.save();
+            }
+            return res.json({message: 'ok'})
+        } catch (e) {
+            return next(ApiError.internal(e))
+        }
+
+    }
+
     async deleteCategory(req, res, next) {
         try {
             const {id} = req.params
@@ -35,4 +61,5 @@ class CategoriesController {
     }
 }
 
-module.exports = new CategoriesController()
+
+module.exports = new CategoriesController();

@@ -5,6 +5,7 @@ const checkRole = require('../middleware/checkRoleMiddleware')
 
 router.post('/', checkRole(2), categoriesController.createCategory)
 router.get('/', categoriesController.getAllCategories)
-router.delete('/', checkRole(2), categoriesController.deleteCategory)
+router.put('/:id', categoriesController.editCategory)
+router.delete('/:id', checkRole(2), categoriesController.deleteCategory)
 
 module.exports = router
