@@ -13,7 +13,18 @@ class QuestionsController {
 
     async getAllQuestion(req, res) {
         const questions = await Question.findAll()
-        return res.json(questions)
+        return res.json(questions.map(item => {
+            return {
+                id: item.id,
+                title: item.title,
+                categoryId: item.categoryId,
+                answer1: item.answer1,
+                answer2: item.answer2,
+                answer3: item.answer3,
+                answer4: item.answer4,
+                correct_answer: item.correct_answer,
+            }
+        }))
     }
 
     async getOneQuestion(req, res) {
