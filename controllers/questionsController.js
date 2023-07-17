@@ -1,11 +1,14 @@
 const ApiError = require("../error/ApiError");
-const {Question} = require("../models/models");
+const {Question, Category} = require("../models/models");
 
 class QuestionsController {
-    async createQuestion(req, res) {
+    async createQuestion(req, res, next) {
         const {title, answer1, answer2, answer3, answer4, correct_answer, categoryId} = req.body
-        const question = await Question.create({title, answer1, answer2, answer3, answer4, correct_answer, categoryId})
-        return res.json(question)
+        if (title && answer1 && answer2 && answer3 && answer4 && correct_answer && categoryId) {
+            const question = await Question.create({title, answer1, answer2, answer3, answer4, correct_answer, categoryId})
+            return res.json(question)
+        }
+        return next(ApiError.badRequest('Поля title, answer1, answer2, answer3, answer4, correct_answer, categoryId являются обязательными'))
     }
 
     async getAllQuestion(req, res) {
@@ -19,6 +22,41 @@ class QuestionsController {
             where: {id}
         })
         return res.json(question)
+    }
+
+    async editQuestion(req, res, next) {
+        try {
+            const {id} = req.params
+            const {
+                categoryId,
+                title,
+                answer1,
+                answer2,
+                answer3,
+                answer4,
+                correct_answer
+            } = req.body
+            const question = await Question.findOne({
+                where: {id}
+            })
+            if (categoryId && title && answer1 && answer2 && answer3 && answer4 && correct_answer) {
+                question.set({
+                    categoryId: categoryId,
+                    title: title,
+                    answer1: answer1,
+                    answer2: answer2,
+                    answer3: answer3,
+                    answer4: answer4,
+                    correct_answer: correct_answer,
+                });
+                await question.save();
+                return res.json({message: 'ok'})
+            }
+            return next(ApiError.badRequest('Поля title, answer1, answer2, answer3, answer4, correct_answer, categoryId являются обязательными'))
+        } catch (e) {
+            return next(ApiError.internal(e))
+        }
+
     }
 
     async deleteQuestion(req, res, next) {
