@@ -1,4 +1,4 @@
-# chat-exaple-back
+# chat-example-back
 
 ## Project Setup
 
