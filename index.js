@@ -1,17 +1,16 @@
+require('dotenv').config()
+
 const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const cors = require('cors')
-const route = require('./routes/route')
-const { addUser, findUser, getRoomUsers } = require("./users");
-
-app.use(cors({origin: '*'}))
-app.use(route)
-
-
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const sequelize = require('./db')
+const models = require('./models/models')
+const router = require('./routes/index')
+const errorHandling = require('./middleware/ErrorHandlingMiddleware')
 
 const io = new Server(server, {
     cors: {
@@ -21,87 +20,48 @@ const io = new Server(server, {
     }
 });
 
-io.on('connection', (socket) => {
-    socket.on('createRoom', (({name, room}, cb) => {
-        if (!name || !room) {
-            return cb('Данные некорректны')
-        }
+const createRoom = require("./socket/chatHandler");
+const connectingExistingRoom = require("./socket/chatHandler");
+const messageHandler = require("./socket/chatHandler");
+const startGame = require("./socket/chatHandler");
+const disconnect = require("./socket/chatHandler");
 
-        cb({userId: socket.id})
 
-        socket.join(room)
+const issue2options = {
+    origin: true,
+    methods: ["POST, DELETE", "PUT"],
+    credentials: true,
+    maxAge: 3600
+};
 
-        const { user, isExist } = addUser({name, room, userId: socket.id}, true)
+app.use(cors(issue2options))
+app.use(express.json())
+app.use('/api', router)
 
-        io.to(user.room).emit('updateUserList', {
-            data: {
-                users: getRoomUsers(user.room)
-            }
-        })
-    }))
+//Обработка ошибок последний middleware
+app.use(errorHandling)
 
-    socket.on('connectingExistingRoom', (({name, room}, cb) => {
-        if (!name || !room) {
-            return cb('Данные некорректны')
-        }
-
-        cb({userId: socket.id})
-
-        socket.join(room)
-
-        const { user, isExist } = addUser({name, room, userId: socket.id})
-
-        const userMessage = isExist ? `Первый вход ${user.name}` : `Это уже не первый вход ${user.name}`
-
-        socket.emit('message', {
-            data: {
-                user: {
-                    name: 'admin',
-                },
-                message: userMessage
-            }
-        })
-
-        socket.broadcast.to(user.room).emit('message', {
-            data: {
-                user: {
-                    name: 'admin',
-                },
-                message: `${user.name} подключился`
-            }
-        })
-
-        io.to(user.room).emit('updateUserList', {
-            data: {
-                users: getRoomUsers(user.room)
-            }
-        })
-    }))
-
-    socket.on('message', ({message, params}) => {
-        const user = findUser(params);
-
-        if (user) {
-            io.to(user.room).emit('message', {
-                data: {
-                    user,
-                    message
-                }
-            })
-        }
-    })
-
-    socket.on('startGame', ({room}, cb) => {
-        io.to(room).emit('startGame', {
-            data: { room }
+const start = async () => {
+    try {
+        await sequelize.authenticate()
+        await sequelize.sync()
+        server.listen(PORT, () => {
+            console.log(`listening on *:${PORT}`);
         });
+    } catch (e) {
+        console.log(e)
+    }
+}
 
-    })
 
-    socket.on('disconnect', (() => {}))
-});
+const onConnection = (socket) => {
+    createRoom(io, socket);
+    connectingExistingRoom(io, socket);
+    messageHandler(io, socket);
+    startGame(io, socket);
+    disconnect(io, socket);
+}
 
+io.on("connection", onConnection);
 
-server.listen(PORT, () => {
-    console.log(`listening on *:${PORT}`);
-});
+start()
