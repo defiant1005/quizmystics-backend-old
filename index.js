@@ -20,11 +20,7 @@ const io = new Server(server, {
     }
 });
 
-const createRoom = require("./socket/chatHandler");
-const connectingExistingRoom = require("./socket/chatHandler");
-const messageHandler = require("./socket/chatHandler");
-const startGame = require("./socket/chatHandler");
-const disconnect = require("./socket/chatHandler");
+const { createRoom, connectingExistingRoom, messageHandler, startGame, disconnect } = require("./socket/chatHandler")(io);
 
 
 const issue2options = {
@@ -55,11 +51,11 @@ const start = async () => {
 
 
 const onConnection = (socket) => {
-    createRoom(io, socket);
-    connectingExistingRoom(io, socket);
-    messageHandler(io, socket);
-    startGame(io, socket);
-    disconnect(io, socket);
+    socket.on("createRoom", createRoom);
+    socket.on("connectingExistingRoom", connectingExistingRoom);
+    socket.on("message", messageHandler);
+    socket.on("startGame", startGame);
+    socket.on("disconnect", disconnect);
 }
 
 io.on("connection", onConnection);

@@ -1,7 +1,12 @@
 const {addUser, getRoomUsers, findUser} = require("../users");
+const {Question} = require("../models/models");
+const {randomIntInclusive} = require("../helpers/get-random-int-inclusive");
 
-module.exports = (io, socket) => {
-    const createRoom = ({name, room}, cb) => {
+
+module.exports = (io) => {
+    const createRoom = function ({name, room}, cb) {
+        const socket = this;
+
         if (!name || !room) {
             return cb('Данные некорректны')
         }
@@ -17,9 +22,11 @@ module.exports = (io, socket) => {
                 users: getRoomUsers(user.room)
             }
         })
-    }
+    };
 
-    const connectingExistingRoom = (({name, room}, cb) => {
+    const connectingExistingRoom = function ({name, room}, cb) {
+        const socket = this;
+
         if (!name || !room) {
             return cb('Данные некорректны')
         }
@@ -55,9 +62,9 @@ module.exports = (io, socket) => {
                 users: getRoomUsers(user.room)
             }
         })
-    })
+    };
 
-    const messageHandler = ({message, params}) => {
+    const messageHandler = function ({message, params}) {
         const user = findUser(params);
 
         if (user) {
@@ -68,22 +75,31 @@ module.exports = (io, socket) => {
                 }
             })
         }
-    }
+    };
 
-    const startGame = ({room}, cb) => {
+    const startGame = async function ({room}, cb) {
+        cb({test: 'ok'})
+
+        const questions = await Question.findAll()
+        const question_id = await randomIntInclusive(0, questions.length)
+
         io.to(room).emit('startGame', {
-            data: { room }
+            data: {
+                room,
+                question_id
+            }
         });
+    };
+
+    const disconnect = function (orderId, callback) {};
+
+
+
+    return {
+        createRoom,
+        connectingExistingRoom,
+        messageHandler,
+        startGame,
+        disconnect,
     }
-
-    const disconnect = (orderId, callback) => {
-        // ...
-    }
-
-
-    socket.on("createRoom", createRoom);
-    socket.on("connectingExistingRoom", connectingExistingRoom);
-    socket.on("message", messageHandler);
-    socket.on("startGame", startGame);
-    socket.on("disconnect", disconnect);
 }
