@@ -78,8 +78,6 @@ module.exports = (io) => {
     };
 
     const startGame = async function ({room}, cb) {
-        cb({test: 'ok'})
-
         const questions = await Question.findAll()
         const question_id = await randomIntInclusive(0, questions.length)
 
