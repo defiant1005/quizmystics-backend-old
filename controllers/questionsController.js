@@ -32,7 +32,14 @@ class QuestionsController {
         const question = await Question.findOne({
             where: {id}
         })
-        return res.json(question)
+        return res.json({
+            title: question.title,
+            answer1: question.answer1,
+            answer2: question.answer2,
+            answer3: question.answer3,
+            answer4: question.answer4,
+            categoryId: question.categoryId,
+        })
     }
 
     async editQuestion(req, res, next) {

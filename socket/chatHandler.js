@@ -1,10 +1,13 @@
 const {addUser, getRoomUsers, findUser} = require("../users");
 const {Question} = require("../models/models");
 const {randomIntInclusive} = require("../helpers/get-random-int-inclusive");
-
+let allQuestion = []
+let allPlayers = []
+let isGameStarted = false
 
 module.exports = (io) => {
     const createRoom = function ({name, room}, cb) {
+        isGameStarted = false
         const socket = this;
 
         if (!name || !room) {
@@ -29,6 +32,10 @@ module.exports = (io) => {
 
         if (!name || !room) {
             return cb('Данные некорректны')
+        }
+
+        if (isGameStarted) {
+            return cb('Комната больше не ищет игроков')
         }
 
         cb({userId: socket.id})
@@ -77,15 +84,19 @@ module.exports = (io) => {
         }
     };
 
-    const startGame = async function ({room}, cb) {
+    const startGame = async function ({room, players}, cb) {
+        isGameStarted = true
+        allPlayers = players
         const questions = await Question.findAll()
-        const question_id = await randomIntInclusive(0, questions.length)
+        allQuestion = questions
+
+        const question_index = await randomIntInclusive(0, questions.length)
+        const question = allQuestion[question_index]
+        allQuestion = allQuestion.filter(item => item.id !== question.id)
 
         io.to(room).emit('startGame', {
-            data: {
-                room,
-                question_id
-            }
+            room,
+            questionId: question.id
         });
     };
 
