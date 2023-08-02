@@ -33,6 +33,7 @@ class QuestionsController {
             where: {id}
         })
         return res.json({
+            id: question.id,
             title: question.title,
             answer1: question.answer1,
             answer2: question.answer2,
