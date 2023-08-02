@@ -1,7 +1,10 @@
 const {addUser, getRoomUsers, findUser} = require("../users");
 const {Question} = require("../models/models");
 const {randomIntInclusive} = require("../helpers/get-random-int-inclusive");
+
 let allQuestion = []
+
+
 let allPlayers = []
 let isGameStarted = false
 
@@ -18,7 +21,7 @@ module.exports = (io) => {
 
         socket.join(room)
 
-        const { user, isExist } = addUser({name, room, userId: socket.id}, true)
+        const { user, isExist } = addUser({name, room, userId: socket.id, count: 0}, true)
 
         io.to(user.room).emit('updateUserList', {
             data: {
@@ -42,7 +45,7 @@ module.exports = (io) => {
 
         socket.join(room)
 
-        const { user, isExist } = addUser({name, room, userId: socket.id})
+        const { user, isExist } = addUser({name, room, userId: socket.id, count: 0})
 
         const userMessage = isExist ? `Первый вход ${user.name}` : `Это уже не первый вход ${user.name}`
 
@@ -85,9 +88,10 @@ module.exports = (io) => {
     };
 
     const startGame = async function ({room, players}, cb) {
+        const questions = await Question.findAll()
+
         isGameStarted = true
         allPlayers = players
-        const questions = await Question.findAll()
         allQuestion = questions
 
         const question_index = await randomIntInclusive(0, questions.length)
@@ -102,6 +106,26 @@ module.exports = (io) => {
 
     const disconnect = function (orderId, callback) {};
 
+    const changeUserCount = async function ({id, answer, userId}, cb) {
+        const questions = await Question.findAll()
+
+        const currentQuestion = questions.find(question => question.id === id)
+
+        if (currentQuestion.correct_answer === answer) {
+            allPlayers.find(user => user.id === userId).count += 100
+        }
+        allPlayers.find(user => user.id === userId).count += -100
+        console.log(allPlayers)
+        //
+        // io.to(user.room).emit('updateUserList', {
+        //     data: {
+        //         users: getRoomUsers(user.room)
+        //     }
+        // })
+
+    };
+
+
 
 
     return {
@@ -110,5 +134,6 @@ module.exports = (io) => {
         messageHandler,
         startGame,
         disconnect,
+        changeUserCount,
     }
 }

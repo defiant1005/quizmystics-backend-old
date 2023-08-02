@@ -20,7 +20,7 @@ const io = new Server(server, {
     }
 });
 
-const { createRoom, connectingExistingRoom, messageHandler, startGame, disconnect } = require("./socket/chatHandler")(io);
+const { createRoom, connectingExistingRoom, messageHandler, startGame, disconnect, changeUserCount } = require("./socket/chatHandler")(io);
 
 
 const issue2options = {
@@ -56,6 +56,7 @@ const onConnection = (socket) => {
     socket.on("message", messageHandler);
     socket.on("startGame", startGame);
     socket.on("disconnect", disconnect);
+    socket.on("changeUserCount", changeUserCount);
 }
 
 io.on("connection", onConnection);
