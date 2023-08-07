@@ -5,6 +5,7 @@ const {randomIntInclusive} = require("../helpers/get-random-int-inclusive");
 let allQuestion = []
 
 let allPlayers = []
+let usersCount = 0
 let isGameStarted = false
 let gameRoom = null
 
@@ -108,26 +109,39 @@ module.exports = (io) => {
     const disconnect = function (orderId, callback) {};
 
     const changeUserCount = async function ({id, answer, userId}, cb) {
+        usersCount += 1
+
         const questions = await Question.findAll()
 
         const currentQuestion = questions.find(question => question.id === id)
 
-        const player = allPlayers.find(user => user.userId === userId)
-        player.oldCount = player.count
 
-        if (currentQuestion.correct_answer === answer) {
-            player.count += 100
-        } else {
-            player.count += -100
+        allPlayers.forEach((player) => {
+            if (player.userId === userId) {
+                player.oldCount = player.count
+
+                if (currentQuestion.correct_answer === answer) {
+                    player.count += 100
+                } else {
+                    player.count += -100
+                }
+            }
+        })
+
+
+
+        if (usersCount === allPlayers.length) {
+            usersCount = 0
+
+            io.to(gameRoom).emit('finishQuestion', {
+                data: {
+                    users: allPlayers
+                }
+            });
+
         }
 
-        io.to(gameRoom).emit('updateUserList', {
-            data: {
-                users: allPlayers
-            }
-        });
 
-        cb()
 
     };
 
