@@ -4,9 +4,9 @@ const {randomIntInclusive} = require("../helpers/get-random-int-inclusive");
 
 let allQuestion = []
 
-
 let allPlayers = []
 let isGameStarted = false
+let gameRoom = null
 
 module.exports = (io) => {
     const createRoom = function ({name, room}, cb) {
@@ -21,7 +21,7 @@ module.exports = (io) => {
 
         socket.join(room)
 
-        const { user, isExist } = addUser({name, room, userId: socket.id, count: 0}, true)
+        const { user, isExist } = addUser({name, room, userId: socket.id, count: 0, oldCount: 0}, true)
 
         io.to(user.room).emit('updateUserList', {
             data: {
@@ -45,7 +45,7 @@ module.exports = (io) => {
 
         socket.join(room)
 
-        const { user, isExist } = addUser({name, room, userId: socket.id, count: 0})
+        const { user, isExist } = addUser({name, room, userId: socket.id, count: 0, oldCount: 0})
 
         const userMessage = isExist ? `Первый вход ${user.name}` : `Это уже не первый вход ${user.name}`
 
@@ -93,6 +93,7 @@ module.exports = (io) => {
         isGameStarted = true
         allPlayers = players
         allQuestion = questions
+        gameRoom = room
 
         const question_index = await randomIntInclusive(0, questions.length)
         const question = allQuestion[question_index]
@@ -111,17 +112,22 @@ module.exports = (io) => {
 
         const currentQuestion = questions.find(question => question.id === id)
 
+        const player = allPlayers.find(user => user.userId === userId)
+        player.oldCount = player.count
+
         if (currentQuestion.correct_answer === answer) {
-            allPlayers.find(user => user.id === userId).count += 100
+            player.count += 100
+        } else {
+            player.count += -100
         }
-        allPlayers.find(user => user.id === userId).count += -100
-        console.log(allPlayers)
-        //
-        // io.to(user.room).emit('updateUserList', {
-        //     data: {
-        //         users: getRoomUsers(user.room)
-        //     }
-        // })
+
+        io.to(gameRoom).emit('updateUserList', {
+            data: {
+                users: allPlayers
+            }
+        });
+
+        cb()
 
     };
 

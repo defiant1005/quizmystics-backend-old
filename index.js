@@ -14,7 +14,7 @@ const errorHandling = require('./middleware/ErrorHandlingMiddleware')
 
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:5173", 'http://127.0.0.1:5173', 'http://192.168.0.101:5173'],
+        origin: ["http://localhost:5173", 'http://127.0.0.1:5173', 'http://192.168.0.101:5173', 'http://192.168.0.105:5173'],
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -41,7 +41,7 @@ const start = async () => {
     try {
         await sequelize.authenticate()
         await sequelize.sync()
-        server.listen(PORT, () => {
+        server.listen(PORT, '192.168.0.105', () => {
             console.log(`listening on *:${PORT}`);
         });
     } catch (e) {
