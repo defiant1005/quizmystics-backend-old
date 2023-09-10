@@ -5,6 +5,7 @@ const checkRole = require('../middleware/checkRoleMiddleware')
 
 
 router.post('/', checkRole(2), questionsController.createQuestion)
+router.post('/check-answer/:id', questionsController.checkAnswer)
 router.get('/', questionsController.getAllQuestion)
 router.get('/:id', questionsController.getOneQuestion)
 router.put('/:id', questionsController.editQuestion)
