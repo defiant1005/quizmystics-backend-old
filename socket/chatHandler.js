@@ -107,14 +107,24 @@ module.exports = (io) => {
     allQuestion = questions;
     gameRoom = room;
 
-    const question_index = await randomIntInclusive(0, questions.length);
-    const question = allQuestion[question_index];
-    allQuestion = allQuestion.filter((item) => item.id !== question.id);
+    const questionId = await nextQuestion();
 
     io.to(room).emit("startGame", {
       room,
-      questionId: question.id,
+      questionId: questionId,
     });
+  };
+
+  const nextQuestion = async function () {
+    const question_index = await randomIntInclusive(0, allQuestion.length);
+    try {
+      const questionId = allQuestion[question_index].id;
+      allQuestion = allQuestion.filter((item) => item.id !== questionId);
+
+      return questionId;
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const disconnect = function (orderId, callback) {};
@@ -141,9 +151,12 @@ module.exports = (io) => {
     if (usersCount === allPlayers.length) {
       usersCount = 0;
 
+      const questionId = await nextQuestion();
+
       io.to(gameRoom).emit("finishQuestion", {
         data: {
           users: allPlayers,
+          nextQuestion: questionId,
         },
       });
     }
