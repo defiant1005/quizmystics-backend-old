@@ -3,11 +3,11 @@ const { Question } = require("../models/models");
 const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
 
 let allQuestion = [];
-
 let allPlayers = [];
 let usersCount = 0;
 let isGameStarted = false;
 let gameRoom = null;
+let questionNumber = 0;
 
 module.exports = (io) => {
   const createRoom = function ({ name, room }, cb) {
@@ -99,6 +99,20 @@ module.exports = (io) => {
     }
   };
 
+  const nextQuestion = async function () {
+    //todo: Функция иногда возвращает undefined (уходит в catch)
+    questionNumber += 1;
+    const question_index = await randomIntInclusive(0, allQuestion.length);
+    try {
+      const questionId = allQuestion[question_index].id;
+      allQuestion = allQuestion.filter((item) => item.id !== questionId);
+
+      return questionId;
+    } catch (e) {
+      console.log("ошибка в nextQuestion", e);
+    }
+  };
+
   const startGame = async function ({ room, players }, cb) {
     const questions = await Question.findAll();
 
@@ -115,24 +129,14 @@ module.exports = (io) => {
     });
   };
 
-  const nextQuestion = async function () {
-    const question_index = await randomIntInclusive(0, allQuestion.length);
-    try {
-      const questionId = allQuestion[question_index].id;
-      allQuestion = allQuestion.filter((item) => item.id !== questionId);
-
-      return questionId;
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   const disconnect = function (orderId, callback) {};
 
   const changeUserCount = async function ({ id, answer, userId }, cb) {
+    let questions = [];
+    if (questionNumber === 1) {
+      questions = await Question.findAll();
+    }
     usersCount += 1;
-
-    const questions = await Question.findAll();
 
     const currentQuestion = questions.find((question) => question.id === id);
 
@@ -140,15 +144,28 @@ module.exports = (io) => {
       if (player.userId === userId) {
         player.oldCount = player.count;
 
-        if (currentQuestion.correct_answer === answer) {
-          player.count += 100;
-        } else {
+        if (answer === "" || answer === undefined || answer === null) {
           player.count += -100;
+        } else {
+          try {
+            if (currentQuestion.correct_answer === answer) {
+              player.count += 100;
+            } else {
+              player.count += -100;
+            }
+          } catch {
+            player.count += -100;
+          }
         }
       }
     });
 
-    if (usersCount === allPlayers.length) {
+    console.table({
+      usersCount: usersCount,
+      allPlayers: allPlayers.length,
+    });
+
+    if (usersCount === allPlayers.length && questionNumber < 11) {
       usersCount = 0;
 
       const questionId = await nextQuestion();
@@ -157,6 +174,12 @@ module.exports = (io) => {
         data: {
           users: allPlayers,
           nextQuestion: questionId,
+        },
+      });
+    } else if (questionNumber === 10) {
+      io.to(gameRoom).emit("finishGame", {
+        data: {
+          users: allPlayers,
         },
       });
     }
