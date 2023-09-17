@@ -47,7 +47,7 @@ module.exports = (io) => {
       return cb("Данные некорректны");
     }
 
-    if (rooms[room].isGameStarted) {
+    if (rooms[room]?.isGameStarted || !rooms[room]) {
       return cb("Комната больше не ищет игроков");
     }
 
