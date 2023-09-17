@@ -2,16 +2,27 @@ const { addUser, getRoomUsers, findUser } = require("../users");
 const { Question } = require("../models/models");
 const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
 
-let allQuestion = [];
-let allPlayers = [];
-let usersCount = 0;
-let isGameStarted = false;
-let gameRoom = null;
-let questionNumber = 0;
-
 module.exports = (io) => {
+  // let allQuestion = [];
+  // let allPlayers = [];
+  // let usersCount = 0;
+  // let isGameStarted = false;
+  // let gameRoom = null;
+  // let questionNumber = 0;
+  const rooms = {};
+
   const createRoom = function ({ name, room }, cb) {
-    isGameStarted = false;
+    rooms[room] = {
+      allQuestion: [],
+      allPlayers: [],
+      usersCount: 0,
+      isGameStarted: false,
+      gameRoom: null,
+      questionNumber: 0,
+    };
+
+    rooms[room].isGameStarted = false;
+
     const socket = this;
 
     if (!name || !room) {
@@ -41,7 +52,7 @@ module.exports = (io) => {
       return cb("Данные некорректны");
     }
 
-    if (isGameStarted) {
+    if (rooms[room].isGameStarted) {
       return cb("Комната больше не ищет игроков");
     }
 
@@ -99,29 +110,40 @@ module.exports = (io) => {
     }
   };
 
-  const nextQuestion = async function () {
+  const nextQuestion = async function (room) {
     //todo: Функция иногда возвращает undefined (уходит в catch)
-    questionNumber += 1;
-    const question_index = await randomIntInclusive(0, allQuestion.length);
+    rooms[room].questionNumber += 1;
+    const question_index = await randomIntInclusive(
+      0,
+      rooms[room].allQuestion.length - 1,
+    );
     try {
-      const questionId = allQuestion[question_index].id;
-      allQuestion = allQuestion.filter((item) => item.id !== questionId);
+      const questionId = rooms[room].allQuestion[question_index].id;
+      rooms[room].allQuestion = rooms[room].allQuestion.filter(
+        (item) => item.id !== questionId,
+      );
 
       return questionId;
     } catch (e) {
-      console.log("ошибка в nextQuestion", e);
+      console.error("ошибка в nextQuestion", {
+        question_index,
+        allQuestionLength: rooms[room].allQuestion.length,
+        question: rooms[room].allQuestion[question_index],
+      });
     }
   };
 
   const startGame = async function ({ room, players }, cb) {
+    rooms[room].usersCount = 0;
+    rooms[room].questionNumber = 0;
     const questions = await Question.findAll();
 
-    isGameStarted = true;
-    allPlayers = players;
-    allQuestion = questions;
-    gameRoom = room;
+    rooms[room].isGameStarted = true;
+    rooms[room].allPlayers = players;
+    rooms[room].allQuestion = questions;
+    rooms[room].gameRoom = room;
 
-    const questionId = await nextQuestion();
+    const questionId = await nextQuestion(room);
 
     io.to(room).emit("startGame", {
       room,
@@ -131,20 +153,29 @@ module.exports = (io) => {
 
   const disconnect = function (orderId, callback) {};
 
-  const changeUserCount = async function ({ id, answer, userId }, cb) {
+  const changeUserCount = async function ({ id, answer, userId, room }, cb) {
+    if (!room) {
+      cb("Поле room обязательное");
+      return;
+    }
+
     let questions = [];
-    if (questionNumber === 1) {
+
+    if (rooms[room]?.questionNumber === 1) {
       questions = await Question.findAll();
     }
-    usersCount += 1;
+    rooms[room].usersCount += 1;
 
     const currentQuestion = questions.find((question) => question.id === id);
 
-    allPlayers.forEach((player) => {
+    rooms[room].allPlayers.forEach((player) => {
       if (player.userId === userId) {
         player.oldCount = player.count;
 
         if (answer === "" || answer === undefined || answer === null) {
+          console.table({
+            answer: answer,
+          });
           player.count += -100;
         } else {
           try {
@@ -161,27 +192,36 @@ module.exports = (io) => {
     });
 
     console.table({
-      usersCount: usersCount,
-      allPlayers: allPlayers.length,
+      usersCount: rooms[room].usersCount,
+      allPlayers: rooms[room].allPlayers.length,
     });
 
-    if (usersCount === allPlayers.length && questionNumber < 11) {
-      usersCount = 0;
+    if (
+      rooms[room].usersCount === rooms[room].allPlayers.length &&
+      rooms[room].questionNumber < 10
+    ) {
+      rooms[room].usersCount = 0;
 
-      const questionId = await nextQuestion();
+      const questionId = await nextQuestion(room);
 
-      io.to(gameRoom).emit("finishQuestion", {
+      io.to(rooms[room].gameRoom).emit("finishQuestion", {
         data: {
-          users: allPlayers,
+          users: rooms[room].allPlayers,
           nextQuestion: questionId,
         },
       });
-    } else if (questionNumber === 10) {
-      io.to(gameRoom).emit("finishGame", {
+    } else {
+      console.table({
+        gameRoom: rooms[room].gameRoom,
+      });
+
+      io.to(rooms[room].gameRoom).emit("finishGame", {
         data: {
-          users: allPlayers,
+          users: rooms[room].allPlayers,
         },
       });
+
+      delete rooms[room];
     }
   };
 
