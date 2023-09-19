@@ -5,7 +5,7 @@ const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
 module.exports = (io) => {
   const rooms = {};
 
-  const createRoom = function ({ name, room }, cb) {
+  const createRoom = function ({ name, room, avatar }, cb) {
     rooms[room] = {
       currentQuestions: [],
       allQuestions: [],
@@ -29,7 +29,7 @@ module.exports = (io) => {
     socket.join(room);
 
     const { user, isExist } = addUser(
-      { name, room, userId: socket.id, count: 0, oldCount: 0 },
+      { name, room, avatar, userId: socket.id, count: 0, oldCount: 0 },
       true,
     );
 
