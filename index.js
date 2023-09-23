@@ -32,6 +32,7 @@ const {
   startGame,
   disconnect,
   changeUserCount,
+  changeUserData,
 } = require("./socket/chatHandler")(io);
 
 const issue2options = {
@@ -63,10 +64,10 @@ const start = async () => {
 const onConnection = (socket) => {
   socket.on("createRoom", createRoom);
   socket.on("connectingExistingRoom", connectingExistingRoom);
-  socket.on("message", messageHandler);
   socket.on("startGame", startGame);
   socket.on("disconnect", disconnect);
   socket.on("changeUserCount", changeUserCount);
+  socket.on("changeUserData", changeUserData);
 };
 
 io.on("connection", onConnection);

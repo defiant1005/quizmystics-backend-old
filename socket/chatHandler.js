@@ -1,11 +1,11 @@
-const { addUser, getRoomUsers, findUser } = require("../users");
 const { Question } = require("../models/models");
 const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
+const { trimStr } = require("../helpers/utils");
 
 module.exports = (io) => {
   const rooms = {};
 
-  const createRoom = function ({ name, room, avatar }, cb) {
+  const createRoom = function ({ name, room, avatar, isReady }, cb) {
     rooms[room] = {
       currentQuestions: [],
       allQuestions: [],
@@ -28,8 +28,8 @@ module.exports = (io) => {
 
     socket.join(room);
 
-    const { user, isExist } = addUser(
-      { name, room, avatar, userId: socket.id, count: 0, oldCount: 0 },
+    const { user } = addUser(
+      { name, room, avatar, isReady, userId: socket.id, count: 0, oldCount: 0 },
       true,
     );
 
@@ -40,7 +40,7 @@ module.exports = (io) => {
     });
   };
 
-  const connectingExistingRoom = function ({ name, room }, cb) {
+  const connectingExistingRoom = function ({ name, room, avatar }, cb) {
     const socket = this;
 
     if (!name || !room) {
@@ -55,34 +55,13 @@ module.exports = (io) => {
 
     socket.join(room);
 
-    const { user, isExist } = addUser({
+    const { user } = addUser({
       name,
       room,
+      avatar,
       userId: socket.id,
       count: 0,
       oldCount: 0,
-    });
-
-    const userMessage = isExist
-      ? `Первый вход ${user.name}`
-      : `Это уже не первый вход ${user.name}`;
-
-    socket.emit("message", {
-      data: {
-        user: {
-          name: "admin",
-        },
-        message: userMessage,
-      },
-    });
-
-    socket.broadcast.to(user.room).emit("message", {
-      data: {
-        user: {
-          name: "admin",
-        },
-        message: `${user.name} подключился`,
-      },
     });
 
     io.to(user.room).emit("updateUserList", {
@@ -90,19 +69,6 @@ module.exports = (io) => {
         users: getRoomUsers(user.room),
       },
     });
-  };
-
-  const messageHandler = function ({ message, params }) {
-    const user = findUser(params);
-
-    if (user) {
-      io.to(user.room).emit("message", {
-        data: {
-          user,
-          message,
-        },
-      });
-    }
   };
 
   const nextQuestion = async function (room) {
@@ -205,12 +171,113 @@ module.exports = (io) => {
     }
   };
 
+  const changeUserData = async function (
+    { userId, name, room, avatar, isReady, stats },
+    cb,
+  ) {
+    if (
+      !userId ||
+      !name ||
+      !room ||
+      !avatar ||
+      !stats ||
+      typeof isReady !== "boolean"
+    ) {
+      cb({
+        error: false,
+        message: "Не все поля валидны",
+      });
+      return;
+    }
+
+    const statSum =
+      stats.health +
+      stats.power +
+      stats.magic +
+      stats.intelligence +
+      stats.dexterity;
+
+    if (
+      !stats.health ||
+      !stats.power ||
+      !stats.magic ||
+      !stats.intelligence ||
+      !stats.dexterity ||
+      statSum !== 15 ||
+      isNaN(statSum)
+    ) {
+      stats = {
+        health: 3,
+        power: 3,
+        magic: 3,
+        intelligence: 3,
+        dexterity: 3,
+      };
+    }
+
+    const currentUser = rooms[room].allPlayers.find((player) => {
+      return player.userId === userId;
+    });
+
+    const index = rooms[room].allPlayers.findIndex(
+      (user) => user.userId !== currentUser.userId,
+    );
+
+    currentUser.name = name;
+    currentUser.room = room;
+    currentUser.avatar = avatar;
+    currentUser.isReady = isReady;
+    currentUser.stats = stats;
+
+    rooms[room].allPlayers[index] = currentUser;
+
+    io.to(currentUser.room).emit("updateUserList", {
+      data: {
+        users: getRoomUsers(currentUser.room),
+      },
+    });
+
+    cb({
+      error: false,
+    });
+  };
+
+  //users
+
+  const findUser = (player) => {
+    return rooms[player.room].allPlayers.find(
+      (user) => user.userId === player.userId,
+    );
+  };
+
+  const addUser = (user, isRoomAdmin = false) => {
+    const isExist = findUser(user);
+
+    if (isRoomAdmin) {
+      user.isRoomAdmin = true;
+    }
+
+    if (!isExist) {
+      rooms[user.room].allPlayers.push(user);
+    }
+
+    const currentUser = isExist || user;
+
+    return {
+      user: currentUser,
+    };
+  };
+
+  const getRoomUsers = (room) => {
+    return rooms[room].allPlayers;
+  };
+
   return {
     createRoom,
     connectingExistingRoom,
-    messageHandler,
     startGame,
     disconnect,
     changeUserCount,
+    changeUserData,
   };
 };
