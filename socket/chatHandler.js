@@ -220,7 +220,7 @@ module.exports = (io) => {
     });
 
     const index = rooms[room].allPlayers.findIndex(
-      (user) => user.userId !== currentUser.userId,
+      (user) => user.userId === currentUser.userId,
     );
 
     currentUser.name = name;
