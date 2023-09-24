@@ -50,6 +50,10 @@ module.exports = (io) => {
       return cb("Комната больше не ищет игроков");
     }
 
+    if (rooms[room].allPlayers.length >= 8) {
+      return cb("В комнате может быть максимум 8 игроков");
+    }
+
     cb({ userId: socket.id });
 
     socket.join(room);
