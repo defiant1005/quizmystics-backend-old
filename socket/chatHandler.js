@@ -1,6 +1,5 @@
 const { Question } = require("../models/models");
 const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
-const { trimStr } = require("../helpers/utils");
 
 module.exports = (io) => {
   const rooms = {};
@@ -113,7 +112,31 @@ module.exports = (io) => {
     });
   };
 
-  const disconnect = function (orderId, callback) {};
+  const disconnecting = function (orderId, callback) {
+    const socket = this;
+    let room = null;
+    const userId = socket.id;
+
+    socket.rooms.forEach((value, valueAgain, set) => {
+      room = value;
+    });
+
+    if (room.length === 4) {
+      if (rooms[room].allPlayers.length === 0) {
+        delete rooms[room];
+      } else {
+        rooms[room].allPlayers = rooms[room].allPlayers.filter(
+          (user) => user.userId !== userId,
+        );
+
+        io.to(room).emit("updateUserList", {
+          data: {
+            users: getRoomUsers(room),
+          },
+        });
+      }
+    }
+  };
 
   const changeUserCount = async function ({ id, answer, userId, room }, cb) {
     if (!room || !rooms[room]) {
@@ -276,7 +299,7 @@ module.exports = (io) => {
     createRoom,
     connectingExistingRoom,
     startGame,
-    disconnect,
+    disconnecting,
     changeUserCount,
     changeUserData,
   };
