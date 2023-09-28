@@ -251,12 +251,120 @@ module.exports = (io) => {
       (user) => user.userId === currentUser.userId,
     );
 
+    let spellList = [];
+
+    switch (stats.magic) {
+      case 1:
+        spellList.push({
+          name: "coldCharm",
+          label: "Холодное Очарование",
+          quantity: 2,
+        });
+        break;
+
+      case 2:
+        spellList.push({
+          name: "coldCharm",
+          label: "Холодное Очарование",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "secretException",
+          label: "Тайное Исключение",
+          quantity: 2,
+        });
+        break;
+
+      case 3:
+        spellList.push({
+          name: "coldCharm",
+          label: "Холодное Очарование",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "secretException",
+          label: "Тайное Исключение",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "silenceWisdom",
+          label: "Молчание Мудрости",
+          quantity: 2,
+        });
+        break;
+
+      case 4:
+        spellList.push({
+          name: "coldCharm",
+          label: "Холодное Очарование",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "secretException",
+          label: "Тайное Исключение",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "silenceWisdom",
+          label: "Молчание Мудрости",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "amuletAbsoluteProtection",
+          label: "Амулет Абсолютной Защиты",
+          quantity: 2,
+        });
+        break;
+
+      case 5:
+        spellList.push({
+          name: "coldCharm",
+          label: "Холодное Очарование",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "secretException",
+          label: "Тайное Исключение",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "silenceWisdom",
+          label: "Молчание Мудрости",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "amuletAbsoluteProtection",
+          label: "Амулет Абсолютной Защиты",
+          quantity: 2,
+        });
+
+        spellList.push({
+          name: "antagonisticRiddle",
+          label: "Антагонистическая Загадка",
+          quantity: 2,
+        });
+        break;
+
+      default:
+        break;
+    }
+
     currentUser.name = name;
     currentUser.room = room;
     currentUser.avatar = avatar;
     currentUser.isReady = isReady;
     currentUser.winningQuote = winningQuote;
     currentUser.stats = stats;
+    currentUser.spellList = spellList;
 
     rooms[room].allPlayers[index] = currentUser;
 
