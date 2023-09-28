@@ -29,7 +29,6 @@ const {
   createRoom,
   connectingExistingRoom,
   startGame,
-  disconnect,
   disconnecting,
   changeUserCount,
   changeUserData,
