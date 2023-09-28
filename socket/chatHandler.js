@@ -199,7 +199,7 @@ module.exports = (io) => {
   };
 
   const changeUserData = async function (
-    { userId, name, room, avatar, isReady, stats },
+    { userId, name, room, avatar, winningQuote, isReady, stats },
     cb,
   ) {
     if (
@@ -207,6 +207,7 @@ module.exports = (io) => {
       !name ||
       !room ||
       !avatar ||
+      !winningQuote ||
       !stats ||
       typeof isReady !== "boolean"
     ) {
@@ -254,6 +255,7 @@ module.exports = (io) => {
     currentUser.room = room;
     currentUser.avatar = avatar;
     currentUser.isReady = isReady;
+    currentUser.winningQuote = winningQuote;
     currentUser.stats = stats;
 
     rooms[room].allPlayers[index] = currentUser;
