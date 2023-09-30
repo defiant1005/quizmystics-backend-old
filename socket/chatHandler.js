@@ -379,6 +379,37 @@ module.exports = (io) => {
     });
   };
 
+  const magicUsage = function ({ userId, victim, spell, room }, cb) {
+    const spellQuantity = rooms[room].allPlayers
+      .find((user) => user.userId === userId)
+      ?.spellList.find((userSpell) => {
+        return userSpell.name === spell;
+      })?.quantity;
+
+    if (typeof spellQuantity !== "undefined" && spellQuantity > 0) {
+      rooms[room].allPlayers
+        .find((user) => user.userId === userId)
+        .spellList.find((userSpell) => {
+          return userSpell.name === spell;
+        }).quantity--;
+
+      rooms[room].allPlayers
+        .find((user) => user.userId === victim)
+        .curse.push({
+          who: userId,
+          spell: spell,
+        });
+
+      io.to(room).emit("updateUserList", {
+        data: {
+          users: getRoomUsers(room),
+        },
+      });
+    } else {
+      cb("Что-то пошло не так");
+    }
+  };
+
   //users
 
   const findUser = (player) => {
@@ -393,6 +424,9 @@ module.exports = (io) => {
     if (isRoomAdmin) {
       user.isRoomAdmin = true;
     }
+
+    //todo: проверить этот функционал
+    user.curse = [];
 
     if (!isExist) {
       rooms[user.room].allPlayers.push(user);
@@ -416,5 +450,6 @@ module.exports = (io) => {
     disconnecting,
     changeUserCount,
     changeUserData,
+    magicUsage,
   };
 };

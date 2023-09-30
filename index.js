@@ -32,6 +32,7 @@ const {
   disconnecting,
   changeUserCount,
   changeUserData,
+  magicUsage,
 } = require("./socket/chatHandler")(io);
 
 const issue2options = {
@@ -67,6 +68,7 @@ const onConnection = (socket) => {
   socket.on("disconnecting", disconnecting);
   socket.on("changeUserCount", changeUserCount);
   socket.on("changeUserData", changeUserData);
+  socket.on("magicUsage", magicUsage);
 };
 
 io.on("connection", onConnection);
