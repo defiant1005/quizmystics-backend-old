@@ -316,8 +316,8 @@ module.exports = (io) => {
         });
 
         spellList.push({
-          name: "antimagicExcess",
-          label: "Антимагический Эксцесс",
+          name: "secretRiddle",
+          label: "Секретная загадка",
           quantity: 2,
         });
         break;
@@ -342,8 +342,8 @@ module.exports = (io) => {
         });
 
         spellList.push({
-          name: "antimagicExcess",
-          label: "Антимагический Эксцесс",
+          name: "secretRiddle",
+          label: "Секретная загадка",
           quantity: 2,
         });
 
