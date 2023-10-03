@@ -393,10 +393,15 @@ module.exports = (io) => {
           return userSpell.name === spell;
         }).quantity--;
 
+      const dexterity = rooms[room].allPlayers.find(
+        (user) => user.userId === victim,
+      ).stats.dexterity;
+
       rooms[room].allPlayers
         .find((user) => user.userId === victim)
         .curse.push({
           who: userId,
+          evaded: spellEvaded(dexterity),
           spell: spell,
         });
 
@@ -441,6 +446,11 @@ module.exports = (io) => {
 
   const getRoomUsers = (room) => {
     return rooms[room].allPlayers;
+  };
+
+  const spellEvaded = (dexterity) => {
+    const percent = dexterity * 0.07;
+    return Math.random() < percent;
   };
 
   return {
