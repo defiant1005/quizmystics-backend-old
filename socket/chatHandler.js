@@ -257,7 +257,7 @@ module.exports = (io) => {
       case 1:
         spellList.push({
           name: "coldCharm",
-          label: "Холодное Очарование",
+          label: "Криострасть",
           quantity: 2,
         });
         break;
@@ -265,13 +265,13 @@ module.exports = (io) => {
       case 2:
         spellList.push({
           name: "coldCharm",
-          label: "Холодное Очарование",
+          label: "Криострасть",
           quantity: 2,
         });
 
         spellList.push({
           name: "secretException",
-          label: "Тайное Исключение",
+          label: "Секретел",
           quantity: 2,
         });
         break;
@@ -279,19 +279,19 @@ module.exports = (io) => {
       case 3:
         spellList.push({
           name: "coldCharm",
-          label: "Холодное Очарование",
+          label: "Криострасть",
           quantity: 2,
         });
 
         spellList.push({
           name: "secretException",
-          label: "Тайное Исключение",
+          label: "Секретел",
           quantity: 2,
         });
 
         spellList.push({
           name: "silenceWisdom",
-          label: "Молчание Мудрости",
+          label: "Интерруптус",
           quantity: 2,
         });
         break;
@@ -299,19 +299,19 @@ module.exports = (io) => {
       case 4:
         spellList.push({
           name: "coldCharm",
-          label: "Холодное Очарование",
+          label: "Криострасть",
           quantity: 2,
         });
 
         spellList.push({
           name: "secretException",
-          label: "Тайное Исключение",
+          label: "Секретел",
           quantity: 2,
         });
 
         spellList.push({
           name: "silenceWisdom",
-          label: "Молчание Мудрости",
+          label: "Интерруптус",
           quantity: 2,
         });
 
@@ -325,19 +325,19 @@ module.exports = (io) => {
       case 5:
         spellList.push({
           name: "coldCharm",
-          label: "Холодное Очарование",
+          label: "Криострасть",
           quantity: 2,
         });
 
         spellList.push({
           name: "secretException",
-          label: "Тайное Исключение",
+          label: "Секретел",
           quantity: 2,
         });
 
         spellList.push({
           name: "silenceWisdom",
-          label: "Молчание Мудрости",
+          label: "Интерруптус",
           quantity: 2,
         });
 
@@ -349,7 +349,7 @@ module.exports = (io) => {
 
         spellList.push({
           name: "antagonisticRiddle",
-          label: "Антагонистическая Загадка",
+          label: "Антаговеяние",
           quantity: 2,
         });
         break;
