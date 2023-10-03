@@ -316,8 +316,8 @@ module.exports = (io) => {
         });
 
         spellList.push({
-          name: "amuletAbsoluteProtection",
-          label: "Амулет Абсолютной Защиты",
+          name: "antimagicExcess",
+          label: "Антимагический Эксцесс",
           quantity: 2,
         });
         break;
@@ -342,8 +342,8 @@ module.exports = (io) => {
         });
 
         spellList.push({
-          name: "amuletAbsoluteProtection",
-          label: "Амулет Абсолютной Защиты",
+          name: "antimagicExcess",
+          label: "Антимагический Эксцесс",
           quantity: 2,
         });
 
