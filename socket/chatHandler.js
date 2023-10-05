@@ -77,6 +77,10 @@ module.exports = (io) => {
   const nextQuestion = async function (room) {
     //todo: Функция иногда возвращает undefined (уходит в catch)
     rooms[room].questionNumber += 1;
+    rooms[room].allPlayers.forEach((user) => {
+      user.curse = [];
+    });
+
     const question_index = await randomIntInclusive(
       0,
       rooms[room].currentQuestions.length - 1,
