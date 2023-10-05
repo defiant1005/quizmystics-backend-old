@@ -202,6 +202,14 @@ module.exports = (io) => {
     }
   };
 
+  const getCorrectAnswer = async function ({ questionId, room }, cb) {
+    const currentQuestion = rooms[room].allQuestions.find(
+      (question) => question.id === questionId,
+    );
+
+    cb(currentQuestion.correct_answer);
+  };
+
   const changeUserData = async function (
     { userId, name, room, avatar, winningQuote, isReady, stats },
     cb,
@@ -465,5 +473,6 @@ module.exports = (io) => {
     changeUserCount,
     changeUserData,
     magicUsage,
+    getCorrectAnswer,
   };
 };
