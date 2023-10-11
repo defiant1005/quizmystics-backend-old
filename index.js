@@ -34,6 +34,8 @@ const {
   changeUserData,
   magicUsage,
   getCorrectAnswer,
+  getTestRoom,
+  dragonTest,
 } = require("./socket/chatHandler")(io);
 
 const issue2options = {
@@ -71,6 +73,8 @@ const onConnection = (socket) => {
   socket.on("changeUserData", changeUserData);
   socket.on("magicUsage", magicUsage);
   socket.on("getCorrectAnswer", getCorrectAnswer);
+  socket.on("getTestRoom", getTestRoom);
+  socket.on("dragonTest", dragonTest);
 };
 
 io.on("connection", onConnection);

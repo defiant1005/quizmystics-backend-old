@@ -1,5 +1,6 @@
 const { Question } = require("../models/models");
 const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
+const { choiceTest } = require("../helpers/choice-test");
 
 module.exports = (io) => {
   const rooms = {};
@@ -427,6 +428,14 @@ module.exports = (io) => {
     }
   };
 
+  const getTestRoom = function ({ count, allUsersCount, room }, cb) {
+    io.to(room).emit("setTestRoom", {
+      data: {
+        test: choiceTest(count, allUsersCount),
+      },
+    });
+  };
+
   //users
 
   const findUser = (player) => {
@@ -465,6 +474,26 @@ module.exports = (io) => {
     return Math.random() < percent;
   };
 
+  //test
+
+  const dragonTest = function ({ treasureCount, room }, cb) {
+    const win = Math.floor(Math.random() * 2) + 1;
+
+    io.to(room).emit("finishDragonTest", {
+      win: win === treasureCount,
+    });
+
+    // if (win === treasureCount) {
+    //   cb({
+    //     win: true,
+    //   });
+    // } else {
+    //   cb({
+    //     win: false,
+    //   });
+    // }
+  };
+
   return {
     createRoom,
     connectingExistingRoom,
@@ -474,5 +503,7 @@ module.exports = (io) => {
     changeUserData,
     magicUsage,
     getCorrectAnswer,
+    getTestRoom,
+    dragonTest,
   };
 };
