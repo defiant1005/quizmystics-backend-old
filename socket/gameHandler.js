@@ -5,6 +5,20 @@ const { choiceTest } = require("../helpers/choice-test");
 module.exports = (io) => {
   const rooms = {};
 
+  const getRoomUsers = (room) => {
+    return rooms[room]?.allPlayers ?? [];
+  };
+
+  const updateOldCount = ({ room, usersId }) => {
+    rooms[room]?.allPlayers?.forEach((user) => {
+      if (usersId.includes(user.userId)) {
+        user.oldCount = user.count;
+      }
+    });
+
+    setUpdateUserList(room);
+  };
+
   const createRoom = function ({ name, room, avatar, isReady }, cb) {
     rooms[room] = {
       currentQuestions: [],
@@ -138,11 +152,7 @@ module.exports = (io) => {
           (user) => user.userId !== userId,
         );
 
-        io.to(room).emit("updateUserList", {
-          data: {
-            users: getRoomUsers(room),
-          },
-        });
+        setUpdateUserList(room);
       }
     }
   };
@@ -418,11 +428,7 @@ module.exports = (io) => {
           spell: spell,
         });
 
-      io.to(room).emit("updateUserList", {
-        data: {
-          users: getRoomUsers(room),
-        },
-      });
+      setUpdateUserList(room);
     } else {
       cb("Что-то пошло не так");
     }
@@ -465,33 +471,49 @@ module.exports = (io) => {
     };
   };
 
-  const getRoomUsers = (room) => {
-    return rooms[room].allPlayers;
-  };
-
   const spellEvaded = (dexterity) => {
     const percent = dexterity * 0.07;
     return Math.random() < percent;
   };
 
+  const setUpdateUserList = (room) => {
+    io.to(room).emit("updateUserList", {
+      data: {
+        users: getRoomUsers(room),
+      },
+    });
+  };
+
   //test
 
-  const dragonTest = function ({ treasureCount, room }, cb) {
+  const dragonTest = function ({ treasureCount, room, userId }, cb) {
     const win = Math.floor(Math.random() * 2) + 1;
+    const currentPlayer = rooms[room].allPlayers.find(
+      (user) => user.userId === userId,
+    );
 
-    io.to(room).emit("finishDragonTest", {
+    if (win === treasureCount) {
+      currentPlayer.oldCount = currentPlayer.count;
+      currentPlayer.count += 1500;
+    } else {
+      currentPlayer.stats.health = 0;
+      currentPlayer.count += 10;
+    }
+
+    const currentPlayerIndex = rooms[room].allPlayers.findIndex(
+      (user) => user.userId === userId,
+    );
+
+    rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
+
+    io.to(room).emit("checkDragonTest", {
       win: win === treasureCount,
+      treasureCount,
     });
 
-    // if (win === treasureCount) {
-    //   cb({
-    //     win: true,
-    //   });
-    // } else {
-    //   cb({
-    //     win: false,
-    //   });
-    // }
+    setTimeout(() => {
+      io.to(room).emit("finishDragonTest");
+    }, 2000);
   };
 
   return {
@@ -502,7 +524,9 @@ module.exports = (io) => {
     changeUserCount,
     changeUserData,
     magicUsage,
+    updateOldCount,
     getCorrectAnswer,
+    setUpdateUserList,
     getTestRoom,
     dragonTest,
   };

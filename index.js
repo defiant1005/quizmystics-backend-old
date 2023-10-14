@@ -33,10 +33,12 @@ const {
   changeUserCount,
   changeUserData,
   magicUsage,
+  updateOldCount,
   getCorrectAnswer,
+  setUpdateUserList,
   getTestRoom,
   dragonTest,
-} = require("./socket/chatHandler")(io);
+} = require("./socket/gameHandler")(io);
 
 const issue2options = {
   origin: true,
@@ -72,7 +74,9 @@ const onConnection = (socket) => {
   socket.on("changeUserCount", changeUserCount);
   socket.on("changeUserData", changeUserData);
   socket.on("magicUsage", magicUsage);
+  socket.on("updateOldCount", updateOldCount);
   socket.on("getCorrectAnswer", getCorrectAnswer);
+  socket.on("setUpdateUserList", setUpdateUserList);
   socket.on("getTestRoom", getTestRoom);
   socket.on("dragonTest", dragonTest);
 };
