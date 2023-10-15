@@ -484,6 +484,26 @@ module.exports = (io) => {
     });
   };
 
+  const playerDeath = (room, userId) => {
+    const currentPlayer = rooms[room].allPlayers.find(
+      (user) => user.userId === userId,
+    );
+
+    currentPlayer.stats = {
+      health: 0,
+      power: 0,
+      magic: 0,
+      intelligence: 0,
+      dexterity: 0,
+    };
+
+    const currentPlayerIndex = rooms[room].allPlayers.findIndex(
+      (user) => user.userId === userId,
+    );
+
+    rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
+  };
+
   //test
 
   const dragonTest = function ({ treasureCount, room, userId }, cb) {
@@ -491,12 +511,12 @@ module.exports = (io) => {
     const currentPlayer = rooms[room].allPlayers.find(
       (user) => user.userId === userId,
     );
+    currentPlayer.oldCount = currentPlayer.count;
 
     if (win === treasureCount) {
-      currentPlayer.oldCount = currentPlayer.count;
       currentPlayer.count += 1500;
     } else {
-      currentPlayer.stats.health = 0;
+      playerDeath(room, userId);
       currentPlayer.count += 10;
     }
 
@@ -513,6 +533,8 @@ module.exports = (io) => {
 
     setTimeout(() => {
       io.to(room).emit("finishDragonTest");
+
+      setUpdateUserList(room);
     }, 2000);
   };
 
