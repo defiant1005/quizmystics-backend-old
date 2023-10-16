@@ -29,6 +29,8 @@ const {
   createRoom,
   connectingExistingRoom,
   startGame,
+  whoChoosesCategory,
+  setCategory,
   disconnecting,
   changeUserCount,
   changeUserData,
@@ -70,6 +72,8 @@ const onConnection = (socket) => {
   socket.on("createRoom", createRoom);
   socket.on("connectingExistingRoom", connectingExistingRoom);
   socket.on("startGame", startGame);
+  socket.on("whoChoosesCategory", whoChoosesCategory);
+  socket.on("setCategory", setCategory);
   socket.on("disconnecting", disconnecting);
   socket.on("changeUserCount", changeUserCount);
   socket.on("changeUserData", changeUserData);

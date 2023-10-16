@@ -1,6 +1,8 @@
-const { Question } = require("../models/models");
+const { Question, Category } = require("../models/models");
 const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
 const { choiceTest } = require("../helpers/choice-test");
+const { Sequelize } = require("sequelize");
+const sequelize = require("sequelize");
 
 module.exports = (io) => {
   const rooms = {};
@@ -23,6 +25,7 @@ module.exports = (io) => {
     rooms[room] = {
       currentQuestions: [],
       allQuestions: [],
+      chosenQuestionIds: [],
       allPlayers: [],
       usersCount: 0,
       isGameStarted: false,
@@ -133,6 +136,42 @@ module.exports = (io) => {
       room,
       questionId: questionId,
     });
+  };
+
+  const whoChoosesCategory = async ({ room }, cb) => {
+    const categories = await Category.findAll({
+      attributes: ["id", "title"],
+      order: Sequelize.literal("RANDOM()"),
+      limit: 4,
+    });
+
+    io.to(room).emit("whoChoosesCategory", {
+      userId: selectUser(rooms[room].allPlayers, rooms[room].questionNumber)
+        .userId,
+      categories: categories,
+    });
+  };
+
+  const setCategory = async ({ room, categoryId }) => {
+    const question = await Question.findOne({
+      where: {
+        categoryId: categoryId,
+        id: {
+          [sequelize.Op.notIn]: rooms[room].chosenQuestionIds,
+        },
+      },
+      order: sequelize.literal("RANDOM()"),
+    });
+
+    rooms[room].chosenQuestionIds.push(question.id);
+  };
+
+  const selectUser = (users, step) => {
+    if (users.length === 0) {
+      return null;
+    }
+    const index = (step - 1) % users.length;
+    return users[index];
   };
 
   const disconnecting = function (orderId, callback) {
@@ -542,6 +581,8 @@ module.exports = (io) => {
     createRoom,
     connectingExistingRoom,
     startGame,
+    whoChoosesCategory,
+    setCategory,
     disconnecting,
     changeUserCount,
     changeUserData,
