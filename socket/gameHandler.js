@@ -295,14 +295,14 @@ module.exports = (io) => {
       stats.power +
       stats.magic +
       stats.intelligence +
-      stats.dexterity;
+      stats.luck;
 
     if (
       !stats.health ||
       !stats.power ||
       !stats.magic ||
       !stats.intelligence ||
-      !stats.dexterity ||
+      !stats.luck ||
       statSum !== 15 ||
       isNaN(statSum)
     ) {
@@ -311,7 +311,7 @@ module.exports = (io) => {
         power: 3,
         magic: 3,
         intelligence: 3,
-        dexterity: 3,
+        luck: 3,
       };
     }
 
@@ -465,15 +465,14 @@ module.exports = (io) => {
           return userSpell.name === spell;
         }).quantity--;
 
-      const dexterity = rooms[room].allPlayers.find(
-        (user) => user.userId === victim,
-      ).stats.dexterity;
+      const luck = rooms[room].allPlayers.find((user) => user.userId === victim)
+        .stats.luck;
 
       rooms[room].allPlayers
         .find((user) => user.userId === victim)
         .curse.push({
           who: userId,
-          evaded: spellEvaded(dexterity),
+          evaded: spellEvaded(luck),
           spell: spell,
         });
 
@@ -520,8 +519,8 @@ module.exports = (io) => {
     };
   };
 
-  const spellEvaded = (dexterity) => {
-    const percent = dexterity * 0.07;
+  const spellEvaded = (luck) => {
+    const percent = luck * 0.07;
     return Math.random() < percent;
   };
 
@@ -543,7 +542,7 @@ module.exports = (io) => {
       power: 0,
       magic: 0,
       intelligence: 0,
-      dexterity: 0,
+      luck: 0,
     };
 
     const currentPlayerIndex = rooms[room].allPlayers.findIndex(
