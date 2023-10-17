@@ -24,13 +24,13 @@ module.exports = (io) => {
   const createRoom = function ({ name, room, avatar, isReady }, cb) {
     rooms[room] = {
       currentQuestions: [],
-      allQuestions: [],
+      // allQuestions: [],
       chosenQuestionIds: [],
       allPlayers: [],
       usersCount: 0,
       isGameStarted: false,
       gameRoom: null,
-      questionNumber: 0,
+      questionNumber: 1,
     };
 
     rooms[room].isGameStarted = false;
@@ -92,49 +92,57 @@ module.exports = (io) => {
     });
   };
 
-  const nextQuestion = async function (room) {
-    //todo: Функция иногда возвращает undefined (уходит в catch)
+  const nextQuestion = async function (room, categoryId) {
     rooms[room].questionNumber += 1;
     rooms[room].allPlayers.forEach((user) => {
       user.curse = [];
     });
 
-    const question_index = await randomIntInclusive(
-      0,
-      rooms[room].currentQuestions.length - 1,
-    );
     try {
-      const questionId = rooms[room].currentQuestions[question_index].id;
-      rooms[room].currentQuestions = rooms[room].currentQuestions.filter(
-        (item) => item.id !== questionId,
-      );
-
-      return questionId;
-    } catch (e) {
-      console.error("ошибка в nextQuestion", {
-        question_index,
-        currentQuestionsLength: rooms[room].currentQuestions.length,
-        question: rooms[room].currentQuestions[question_index],
+      const question = await Question.findOne({
+        attributes: [
+          "id",
+          "answer1",
+          "answer2",
+          "answer3",
+          "answer4",
+          "categoryId",
+          "title",
+        ],
+        where: {
+          categoryId: categoryId,
+          id: {
+            [sequelize.Op.notIn]: rooms[room].chosenQuestionIds,
+          },
+        },
+        order: sequelize.literal("RANDOM()"),
       });
+
+      rooms[room].chosenQuestionIds.push(question.id);
+
+      return question;
+    } catch (e) {
+      console.error("ошибка в nextQuestion", e);
+      return null;
     }
   };
 
   const startGame = async function ({ room, players }, cb) {
-    const questions = await Question.findAll();
+    // const questions = await Question.findAll();
 
     rooms[room].usersCount = 0;
-    rooms[room].questionNumber = 0;
+    rooms[room].questionNumber = 1;
     rooms[room].isGameStarted = true;
     rooms[room].allPlayers = players;
-    rooms[room].currentQuestions = questions;
-    rooms[room].allQuestions = questions;
+    // rooms[room].currentQuestions = questions;
+    // rooms[room].allQuestions = questions;
     rooms[room].gameRoom = room;
 
-    const questionId = await nextQuestion(room);
+    // const questionId = await nextQuestion(room);
 
     io.to(room).emit("startGame", {
       room,
-      questionId: questionId,
+      // questionId: questionId,
     });
   };
 
@@ -153,17 +161,13 @@ module.exports = (io) => {
   };
 
   const setCategory = async ({ room, categoryId }) => {
-    const question = await Question.findOne({
-      where: {
-        categoryId: categoryId,
-        id: {
-          [sequelize.Op.notIn]: rooms[room].chosenQuestionIds,
-        },
-      },
-      order: sequelize.literal("RANDOM()"),
-    });
+    const question = await nextQuestion(room, categoryId);
 
-    rooms[room].chosenQuestionIds.push(question.id);
+    io.to(room).emit("setCategory", categoryId);
+
+    setTimeout(() => {
+      io.to(room).emit("currentQuestion", question);
+    }, 1200);
   };
 
   const selectUser = (users, step) => {
@@ -204,9 +208,12 @@ module.exports = (io) => {
 
     rooms[room].usersCount += 1;
 
-    const currentQuestion = rooms[room].allQuestions.find(
-      (question) => question.id === id,
-    );
+    const currentQuestion = await Question.findOne({
+      attributes: ["correct_answer"],
+      where: {
+        id: id,
+      },
+    });
 
     rooms[room].allPlayers.forEach((player) => {
       if (player.userId === userId) {
@@ -233,12 +240,12 @@ module.exports = (io) => {
       rooms[room].questionNumber < 10
     ) {
       rooms[room].usersCount = 0;
-      const questionId = await nextQuestion(room);
+      // const questionId = await nextQuestion(room);
 
       io.to(rooms[room].gameRoom).emit("finishQuestion", {
         data: {
           users: rooms[room].allPlayers,
-          nextQuestion: questionId,
+          // nextQuestion: questionId,
         },
       });
     } else if (rooms[room].questionNumber === 10) {
@@ -253,9 +260,12 @@ module.exports = (io) => {
   };
 
   const getCorrectAnswer = async function ({ questionId, room }, cb) {
-    const currentQuestion = rooms[room].allQuestions.find(
-      (question) => question.id === questionId,
-    );
+    const currentQuestion = await Question.findOne({
+      attributes: ["correct_answer"],
+      where: {
+        id: questionId,
+      },
+    });
 
     cb(currentQuestion.correct_answer);
   };
