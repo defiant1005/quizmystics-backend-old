@@ -31,7 +31,6 @@ const choiceTest = (count, allUsersCount) => {
     case 3:
       if (livePlayersCount > 0) {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -44,7 +43,6 @@ const choiceTest = (count, allUsersCount) => {
         ]);
       } else {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -57,7 +55,6 @@ const choiceTest = (count, allUsersCount) => {
     case 4:
       if (livePlayersCount > 0) {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -70,7 +67,6 @@ const choiceTest = (count, allUsersCount) => {
         ]);
       } else {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -83,7 +79,6 @@ const choiceTest = (count, allUsersCount) => {
     case 5:
       if (livePlayersCount > 0) {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -96,7 +91,6 @@ const choiceTest = (count, allUsersCount) => {
         ]);
       } else {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -109,7 +103,6 @@ const choiceTest = (count, allUsersCount) => {
     case 6:
       if (livePlayersCount > 0) {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -122,7 +115,6 @@ const choiceTest = (count, allUsersCount) => {
         ]);
       } else {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -135,7 +127,6 @@ const choiceTest = (count, allUsersCount) => {
     case 7:
       if (livePlayersCount > 0) {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -148,7 +139,6 @@ const choiceTest = (count, allUsersCount) => {
         ]);
       } else {
         return getRandomTest([
-          "scam",
           "money",
           "arena",
           "fight",
@@ -160,7 +150,6 @@ const choiceTest = (count, allUsersCount) => {
 
     case 8:
       return getRandomTest([
-        "scam",
         "money",
         "arena",
         "fight",

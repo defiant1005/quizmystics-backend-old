@@ -40,6 +40,7 @@ const {
   setUpdateUserList,
   getTestRoom,
   dragonTest,
+  scamTest,
 } = require("./socket/gameHandler")(io);
 
 const issue2options = {
@@ -83,6 +84,7 @@ const onConnection = (socket) => {
   socket.on("setUpdateUserList", setUpdateUserList);
   socket.on("getTestRoom", getTestRoom);
   socket.on("dragonTest", dragonTest);
+  socket.on("scamTest", scamTest);
 };
 
 io.on("connection", onConnection);

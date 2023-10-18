@@ -3,6 +3,9 @@ const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
 const { choiceTest } = require("../helpers/choice-test");
 const { Sequelize } = require("sequelize");
 const sequelize = require("sequelize");
+const {
+  scamTestWinnersNumber,
+} = require("../helpers/scam-test-winners-number");
 
 module.exports = (io) => {
   const rooms = {};
@@ -532,58 +535,98 @@ module.exports = (io) => {
     });
   };
 
-  const playerDeath = (room, userId) => {
-    const currentPlayer = rooms[room].allPlayers.find(
-      (user) => user.userId === userId,
-    );
-
-    currentPlayer.stats = {
-      health: 0,
-      power: 0,
-      magic: 0,
-      intelligence: 0,
-      luck: 0,
-    };
-
-    const currentPlayerIndex = rooms[room].allPlayers.findIndex(
-      (user) => user.userId === userId,
-    );
-
-    rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
-  };
-
   //test
+
+  const checkedDeath = (players) => {
+    return players.stats.health > 0;
+  };
 
   const dragonTest = function ({ treasureCount, room, userId }, cb) {
     const win = Math.floor(Math.random() * 2) + 1;
     const currentPlayer = rooms[room].allPlayers.find(
       (user) => user.userId === userId,
     );
-    currentPlayer.oldCount = currentPlayer.count;
 
-    if (win === treasureCount) {
-      currentPlayer.count += 1500;
-    } else {
-      playerDeath(room, userId);
-      currentPlayer.count += 10;
+    if (checkedDeath(currentPlayer)) {
+      currentPlayer.oldCount = currentPlayer.count;
+
+      if (win === treasureCount) {
+        currentPlayer.count += 500;
+      } else {
+        currentPlayer.stats = {
+          health: 0,
+          power: 0,
+          magic: 0,
+          intelligence: 0,
+          luck: 0,
+        };
+        currentPlayer.count += 10;
+      }
+
+      const currentPlayerIndex = rooms[room].allPlayers.findIndex(
+        (user) => user.userId === userId,
+      );
+
+      rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
+
+      io.to(room).emit("checkDragonTest", {
+        win: win === treasureCount,
+        treasureCount,
+      });
+
+      setTimeout(() => {
+        io.to(room).emit("finishDragonTest");
+
+        setUpdateUserList(room);
+      }, 2000);
     }
+  };
 
-    const currentPlayerIndex = rooms[room].allPlayers.findIndex(
+  const scamTest = function ({ userId, room, number }) {
+    const currentPlayer = rooms[room].allPlayers.find(
       (user) => user.userId === userId,
     );
 
-    rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
+    if (checkedDeath(currentPlayer)) {
+      const winnersNumber = scamTestWinnersNumber(currentPlayer.stats.luck);
 
-    io.to(room).emit("checkDragonTest", {
-      win: win === treasureCount,
-      treasureCount,
-    });
+      currentPlayer.oldCount = currentPlayer.count;
 
-    setTimeout(() => {
-      io.to(room).emit("finishDragonTest");
+      if (winnersNumber.includes(number)) {
+        currentPlayer.count += 10;
+      } else {
+        currentPlayer.count += 5;
+        currentPlayer.stats.health = currentPlayer.stats.health - 1;
 
-      setUpdateUserList(room);
-    }, 2000);
+        if (currentPlayer.stats.health < 1) {
+          currentPlayer.stats = {
+            health: 0,
+            power: 0,
+            magic: 0,
+            intelligence: 0,
+            luck: 0,
+          };
+        }
+      }
+
+      const currentPlayerIndex = rooms[room].allPlayers.findIndex(
+        (user) => user.userId === userId,
+      );
+
+      rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
+
+      io.to(room).emit("checkScamTest", {
+        win: winnersNumber.includes(number),
+        selectedNumber: number,
+        winningNumbers: winnersNumber,
+      });
+
+      setTimeout(() => {
+        io.to(room).emit("finishScamTest");
+
+        setUpdateUserList(room);
+      }, 3000);
+    }
   };
 
   return {
@@ -601,5 +644,6 @@ module.exports = (io) => {
     setUpdateUserList,
     getTestRoom,
     dragonTest,
+    scamTest,
   };
 };
