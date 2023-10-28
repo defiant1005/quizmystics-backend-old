@@ -6,6 +6,7 @@ const sequelize = require("sequelize");
 const {
   scamTestWinnersNumber,
 } = require("../helpers/scam-test-winners-number");
+const { minMaxNumbers } = require("../helpers/avarage-test");
 
 module.exports = (io) => {
   const rooms = {};
@@ -629,6 +630,70 @@ module.exports = (io) => {
     }
   };
 
+  const averageTest = function ({
+    userId,
+    room,
+    averageNumber,
+    usersLength = null,
+  }) {
+    if (typeof rooms[room].averageTest === "undefined") {
+      rooms[room].averageTest = {};
+      rooms[room].averageTest.usersAnswers = [];
+    }
+
+    if (usersLength !== null) {
+      rooms[room].averageTest.usersLength = usersLength;
+    }
+
+    rooms[room].averageTest.usersAnswers.push({
+      id: userId,
+      number: averageNumber,
+    });
+
+    if (
+      rooms[room].averageTest.usersLength &&
+      rooms[room].averageTest.usersAnswers.length ===
+        rooms[room].averageTest.usersLength
+    ) {
+      const losePlayers = minMaxNumbers(rooms[room].averageTest.usersAnswers);
+
+      losePlayers.forEach((item) => {
+        const currentPlayer = rooms[room].allPlayers.find(
+          (user) => user.userId === item.id,
+        );
+        const currentPlayerIndex = rooms[room].allPlayers.findIndex(
+          (user) => user.userId === item.id,
+        );
+
+        currentPlayer.stats.health = currentPlayer.stats.health - 1;
+        currentPlayer.count += 5;
+
+        if (currentPlayer.stats.health < 1) {
+          currentPlayer.stats = {
+            health: 0,
+            power: 0,
+            magic: 0,
+            intelligence: 0,
+            luck: 0,
+          };
+        }
+
+        rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
+      });
+
+      io.to(room).emit("checkAverageTest", {
+        losePlayers: losePlayers,
+        usersAnswers: rooms[room].averageTest.usersAnswers,
+      });
+
+      setTimeout(() => {
+        io.to(room).emit("finishAverageTest");
+
+        setUpdateUserList(room);
+      }, 3000);
+    }
+  };
+
   return {
     createRoom,
     connectingExistingRoom,
@@ -645,5 +710,6 @@ module.exports = (io) => {
     getTestRoom,
     dragonTest,
     scamTest,
+    averageTest,
   };
 };

@@ -19,6 +19,7 @@ const io = new Server(server, {
       "http://127.0.0.1:8080",
       "http://192.168.0.101:8080",
       "http://192.168.0.100:8080",
+      "http://192.168.72.91:8080",
     ],
     methods: ["GET", "POST"],
     credentials: true,
@@ -41,6 +42,7 @@ const {
   getTestRoom,
   dragonTest,
   scamTest,
+  averageTest,
 } = require("./socket/gameHandler")(io);
 
 const issue2options = {
@@ -85,6 +87,7 @@ const onConnection = (socket) => {
   socket.on("getTestRoom", getTestRoom);
   socket.on("dragonTest", dragonTest);
   socket.on("scamTest", scamTest);
+  socket.on("averageTest", averageTest);
 };
 
 io.on("connection", onConnection);
