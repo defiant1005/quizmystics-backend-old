@@ -1,0 +1,16 @@
+*.html
+*.yaml
+*.yml
+*.lock
+
+**/.git
+**/.svn
+**/.hg
+**/node_modules
+**/dist
+**/coverage
+**/.cicd
+
+/coverage/
+/build/
+/public/
