@@ -1,9 +1,10 @@
 import { Model } from "sequelize";
 
 interface UserAttributes {
-  id: number;
+  id?: number;
   email: string;
   password: string;
+  roleId?: number;
 }
 
 interface UserCreationAttributes extends UserAttributes {}

@@ -1,45 +1,70 @@
-const ApiError = require("../error/ApiError.ts");
-const { Role } = require("../models/models.js");
+import { Request, Response, NextFunction } from "express";
+import { Role } from "../models/models.js";
+import ApiError from "../error/ApiError.js";
 
 class RolesController {
-  async createRole(req, res) {
-    const { role } = req.body;
-    const newRole = await Role.create({ role });
-    return res.json(newRole);
+  private handleError(res: Response, error: unknown, defaultMessage: string): Response {
+    if (error instanceof Error) {
+      return res.status(500).json({ message: error.message });
+    } else {
+      return res.status(500).json({ message: defaultMessage });
+    }
   }
 
-  async getAllRole(req, res) {
-    const roles = await Role.findAll();
-    return res.json(
-      roles.map((role) => {
-        return {
-          id: role.id,
-          role: role.role,
-        };
-      }),
-    );
+  async createRole(req: Request, res: Response): Promise<Response> {
+    try {
+      const { role } = req.body;
+      const newRole = await Role.create({ role });
+      return res.json(newRole);
+    } catch (error) {
+      return this.handleError(res, error, "Произошла непредвиденная ошибка");
+    }
   }
 
-  async getOneRole(req, res) {
-    const { id } = req.params;
-    const role = await Role.findOne({
-      where: { id },
-    });
-    return res.json(role);
+  async getAllRole(req: Request, res: Response): Promise<Response> {
+    try {
+      const roles = await Role.findAll();
+      return res.json(
+        roles.map((role) => {
+          return {
+            id: role.id,
+            role: role.role,
+          };
+        }),
+      );
+    } catch (error) {
+      return this.handleError(res, error, "Произошла непредвиденная ошибка");
+    }
   }
 
-  async deleteRole(req, res, next) {
+  async getOneRole(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const role = await Role.findOne({
         where: { id },
       });
-      await role.destroy();
+      return res.json(role);
+    } catch (error) {
+      return this.handleError(res, error, "Произошла непредвиденная ошибка");
+    }
+  }
+
+  async deleteRole(req: Request, res: Response, next: NextFunction): Promise<Response> {
+    try {
+      const { id } = req.params;
+      const role = await Role.findOne({
+        where: { id },
+      });
+      if (role) {
+        await role.destroy();
+      } else {
+        return res.json(ApiError.badRequest("Роль не найдена"));
+      }
       return res.json({ message: "ok" });
-    } catch (e) {
-      return next(ApiError.badRequest("Что-то пошло не так"));
+    } catch (error) {
+      return this.handleError(res, error, "Произошла непредвиденная ошибка");
     }
   }
 }
 
-module.exports = new RolesController();
+export default new RolesController();

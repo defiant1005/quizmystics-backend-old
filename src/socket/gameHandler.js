@@ -1,10 +1,10 @@
 const { Question, Category } = require("../models/models.ts");
-const { randomIntInclusive } = require("../helpers/get-random-int-inclusive.js");
-const { choiceTest } = require("../helpers/choice-test.js");
+const { randomIntInclusive } = require("../helpers/get-random-int-inclusive.ts");
+const { choiceTest } = require("../helpers/choice-test.ts");
 const { Sequelize } = require("sequelize");
 const sequelize = require("sequelize");
-const { scamTestWinnersNumber } = require("../helpers/scam-test-winners-number.js");
-const { minMaxNumbers } = require("../helpers/avarage-test.js");
+const { scamTestWinnersNumber } = require("../helpers/scam-test-winners-number.ts");
+const { minMaxNumbers } = require("../helpers/avarage-test.ts");
 
 module.exports = (io) => {
   const rooms = {};

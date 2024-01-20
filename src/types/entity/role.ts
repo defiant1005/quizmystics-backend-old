@@ -1,7 +1,7 @@
 import { Model } from "sequelize";
 
 interface RoleAttributes {
-  id: number;
+  id?: number;
   role: string;
 }
 

@@ -1,14 +1,33 @@
-const Router = require('express');
-const router = new Router();
-const userController = require('../controllers/userController.js');
-const authMiddleware = require('../middleware/authMiddleware.js');
-const checkRole = require('../middleware/checkRoleMiddleware.js');
+import { body } from "express-validator";
+import { Router } from "express";
+import authMiddleware from "../middleware/authMiddleware.js";
+import checkRole from "../middleware/checkRoleMiddleware.js";
+import UserController from "../controllers/userController.js";
 
-router.post('/registration', userController.registration);
-router.post('/login', userController.login);
-router.get('/auth', authMiddleware, userController.check);
-router.get('/users', authMiddleware, userController.allUsers);
-router.put('/users/:id', authMiddleware, userController.editUser);
-router.delete('/users/:id', checkRole(2), userController.deleteUser);
+const router = Router();
 
-module.exports = router;
+router.post(
+  "/registration",
+  [
+    body("email").isEmail().withMessage("Некорректный email"),
+    body("password").isLength({ min: 6 }).withMessage("Пароль должен содержать минимум 6 символов"),
+    body("roleId").isNumeric().withMessage("Некорректный roleId"),
+  ],
+  UserController.registration,
+);
+
+router.post(
+  "/login",
+  [
+    body("email").isEmail().withMessage("Некорректный email"),
+    body("password").isLength({ min: 6 }).withMessage("Пароль должен содержать минимум 6 символов"),
+  ],
+  UserController.login,
+);
+
+router.get("/auth", authMiddleware, UserController.check);
+router.get("/users", authMiddleware, UserController.allUsers);
+router.put("/users/:id", authMiddleware, UserController.editUser);
+router.delete("/users/:id", checkRole(2), UserController.deleteUser);
+
+export default router;

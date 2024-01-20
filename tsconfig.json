@@ -13,12 +13,12 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"],
   "lib": ["esnext"],
   "ts-node": {
-    "esm": true
-  }
+    "esm": true,
+  },
 }

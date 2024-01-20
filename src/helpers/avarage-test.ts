@@ -1,4 +1,8 @@
-const minMaxNumbers = (arr) => {
+interface NumberObject {
+  number: number;
+}
+
+const minMaxNumbers = (arr: NumberObject[]): NumberObject[] => {
   if (arr.length === 0) {
     return [];
   }
@@ -14,9 +18,7 @@ const minMaxNumbers = (arr) => {
     }
   }
 
-  return arr.filter(
-    (obj) => obj.number === minNumber || obj.number === maxNumber,
-  );
+  return arr.filter((obj) => obj.number === minNumber || obj.number === maxNumber);
 };
 
-exports.minMaxNumbers = minMaxNumbers;
+export { minMaxNumbers };

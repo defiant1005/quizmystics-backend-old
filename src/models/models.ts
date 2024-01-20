@@ -1,9 +1,9 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../db.js";
-import { IUser, IUserInstance } from "../interfaces/entity/user.js";
-import { ICategory } from "../interfaces/entity/category.js";
-import { IQuestion } from "../interfaces/entity/question.js";
-import { IRole } from "../interfaces/entity/role.js";
+import { IUser, IUserInstance } from "../types/entity/user.js";
+import { ICategory } from "../types/entity/category.js";
+import { IQuestion } from "../types/entity/question.js";
+import { IRole } from "../types/entity/role.js";
 
 const User = sequelize.define<IUserInstance>("user", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

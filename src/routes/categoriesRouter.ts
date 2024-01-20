@@ -1,6 +1,6 @@
 import express from "express";
 import categoriesController from "../controllers/categoriesController.js";
-import checkRole from "../middleware/checkRoleMiddleware";
+import checkRole from "../middleware/checkRoleMiddleware.js";
 
 const router = express.Router();
 
