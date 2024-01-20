@@ -1,12 +1,10 @@
-const { Question, Category } = require("../models/models");
-const { randomIntInclusive } = require("../helpers/get-random-int-inclusive");
-const { choiceTest } = require("../helpers/choice-test");
+const { Question, Category } = require("../models/models.ts");
+const { randomIntInclusive } = require("../helpers/get-random-int-inclusive.js");
+const { choiceTest } = require("../helpers/choice-test.js");
 const { Sequelize } = require("sequelize");
 const sequelize = require("sequelize");
-const {
-  scamTestWinnersNumber,
-} = require("../helpers/scam-test-winners-number");
-const { minMaxNumbers } = require("../helpers/avarage-test");
+const { scamTestWinnersNumber } = require("../helpers/scam-test-winners-number.js");
+const { minMaxNumbers } = require("../helpers/avarage-test.js");
 
 module.exports = (io) => {
   const rooms = {};
@@ -49,10 +47,7 @@ module.exports = (io) => {
 
     socket.join(room);
 
-    const { user } = addUser(
-      { name, room, avatar, isReady, userId: socket.id, count: 0, oldCount: 0 },
-      true,
-    );
+    const { user } = addUser({ name, room, avatar, isReady, userId: socket.id, count: 0, oldCount: 0 }, true);
 
     io.to(user.room).emit("updateUserList", {
       data: {
@@ -104,15 +99,7 @@ module.exports = (io) => {
 
     try {
       const question = await Question.findOne({
-        attributes: [
-          "id",
-          "answer1",
-          "answer2",
-          "answer3",
-          "answer4",
-          "categoryId",
-          "title",
-        ],
+        attributes: ["id", "answer1", "answer2", "answer3", "answer4", "categoryId", "title"],
         where: {
           categoryId: categoryId,
           id: {
@@ -158,8 +145,7 @@ module.exports = (io) => {
     });
 
     io.to(room).emit("whoChoosesCategory", {
-      userId: selectUser(rooms[room].allPlayers, rooms[room].questionNumber)
-        .userId,
+      userId: selectUser(rooms[room].allPlayers, rooms[room].questionNumber).userId,
       categories: categories,
     });
   };
@@ -195,9 +181,7 @@ module.exports = (io) => {
       if (rooms[room].allPlayers.length === 0) {
         delete rooms[room];
       } else {
-        rooms[room].allPlayers = rooms[room].allPlayers.filter(
-          (user) => user.userId !== userId,
-        );
+        rooms[room].allPlayers = rooms[room].allPlayers.filter((user) => user.userId !== userId);
 
         setUpdateUserList(room);
       }
@@ -239,10 +223,7 @@ module.exports = (io) => {
       }
     });
 
-    if (
-      rooms[room].usersCount === rooms[room].allPlayers.length &&
-      rooms[room].questionNumber < 10
-    ) {
+    if (rooms[room].usersCount === rooms[room].allPlayers.length && rooms[room].questionNumber < 10) {
       rooms[room].usersCount = 0;
       // const questionId = await nextQuestion(room);
 
@@ -274,19 +255,8 @@ module.exports = (io) => {
     cb(currentQuestion.correct_answer);
   };
 
-  const changeUserData = async function (
-    { userId, name, room, avatar, winningQuote, isReady, stats },
-    cb,
-  ) {
-    if (
-      !userId ||
-      !name ||
-      !room ||
-      !avatar ||
-      !winningQuote ||
-      !stats ||
-      typeof isReady !== "boolean"
-    ) {
+  const changeUserData = async function ({ userId, name, room, avatar, winningQuote, isReady, stats }, cb) {
+    if (!userId || !name || !room || !avatar || !winningQuote || !stats || typeof isReady !== "boolean") {
       cb({
         error: false,
         message: "Не все поля валидны",
@@ -294,12 +264,7 @@ module.exports = (io) => {
       return;
     }
 
-    const statSum =
-      stats.health +
-      stats.power +
-      stats.magic +
-      stats.intelligence +
-      stats.luck;
+    const statSum = stats.health + stats.power + stats.magic + stats.intelligence + stats.luck;
 
     if (
       !stats.health ||
@@ -323,9 +288,7 @@ module.exports = (io) => {
       return player.userId === userId;
     });
 
-    const index = rooms[room].allPlayers.findIndex(
-      (user) => user.userId === currentUser.userId,
-    );
+    const index = rooms[room].allPlayers.findIndex((user) => user.userId === currentUser.userId);
 
     let spellList = [];
 
@@ -469,8 +432,7 @@ module.exports = (io) => {
           return userSpell.name === spell;
         }).quantity--;
 
-      const luck = rooms[room].allPlayers.find((user) => user.userId === victim)
-        .stats.luck;
+      const luck = rooms[room].allPlayers.find((user) => user.userId === victim).stats.luck;
 
       rooms[room].allPlayers
         .find((user) => user.userId === victim)
@@ -497,9 +459,7 @@ module.exports = (io) => {
   //users
 
   const findUser = (player) => {
-    return rooms[player.room].allPlayers.find(
-      (user) => user.userId === player.userId,
-    );
+    return rooms[player.room].allPlayers.find((user) => user.userId === player.userId);
   };
 
   const addUser = (user, isRoomAdmin = false) => {
@@ -544,9 +504,7 @@ module.exports = (io) => {
 
   const dragonTest = function ({ treasureCount, room, userId }, cb) {
     const win = Math.floor(Math.random() * 2) + 1;
-    const currentPlayer = rooms[room].allPlayers.find(
-      (user) => user.userId === userId,
-    );
+    const currentPlayer = rooms[room].allPlayers.find((user) => user.userId === userId);
 
     if (checkedDeath(currentPlayer)) {
       currentPlayer.oldCount = currentPlayer.count;
@@ -564,9 +522,7 @@ module.exports = (io) => {
         currentPlayer.count += 10;
       }
 
-      const currentPlayerIndex = rooms[room].allPlayers.findIndex(
-        (user) => user.userId === userId,
-      );
+      const currentPlayerIndex = rooms[room].allPlayers.findIndex((user) => user.userId === userId);
 
       rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
 
@@ -584,9 +540,7 @@ module.exports = (io) => {
   };
 
   const scamTest = function ({ userId, room, number }) {
-    const currentPlayer = rooms[room].allPlayers.find(
-      (user) => user.userId === userId,
-    );
+    const currentPlayer = rooms[room].allPlayers.find((user) => user.userId === userId);
 
     if (checkedDeath(currentPlayer)) {
       const winnersNumber = scamTestWinnersNumber(currentPlayer.stats.luck);
@@ -610,9 +564,7 @@ module.exports = (io) => {
         }
       }
 
-      const currentPlayerIndex = rooms[room].allPlayers.findIndex(
-        (user) => user.userId === userId,
-      );
+      const currentPlayerIndex = rooms[room].allPlayers.findIndex((user) => user.userId === userId);
 
       rooms[room].allPlayers[currentPlayerIndex] = currentPlayer;
 
@@ -630,12 +582,7 @@ module.exports = (io) => {
     }
   };
 
-  const averageTest = function ({
-    userId,
-    room,
-    averageNumber,
-    usersLength = null,
-  }) {
+  const averageTest = function ({ userId, room, averageNumber, usersLength = null }) {
     if (typeof rooms[room].averageTest === "undefined") {
       rooms[room].averageTest = {};
       rooms[room].averageTest.usersAnswers = [];
@@ -652,18 +599,13 @@ module.exports = (io) => {
 
     if (
       rooms[room].averageTest.usersLength &&
-      rooms[room].averageTest.usersAnswers.length ===
-        rooms[room].averageTest.usersLength
+      rooms[room].averageTest.usersAnswers.length === rooms[room].averageTest.usersLength
     ) {
       const losePlayers = minMaxNumbers(rooms[room].averageTest.usersAnswers);
 
       losePlayers.forEach((item) => {
-        const currentPlayer = rooms[room].allPlayers.find(
-          (user) => user.userId === item.id,
-        );
-        const currentPlayerIndex = rooms[room].allPlayers.findIndex(
-          (user) => user.userId === item.id,
-        );
+        const currentPlayer = rooms[room].allPlayers.find((user) => user.userId === item.id);
+        const currentPlayerIndex = rooms[room].allPlayers.findIndex((user) => user.userId === item.id);
 
         currentPlayer.stats.health = currentPlayer.stats.health - 1;
         currentPlayer.count += 5;

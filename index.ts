@@ -1,18 +1,16 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
+import express, { Application } from "express";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
+import cors from "cors";
+import router from "./src/routes";
+import errorHandling from "./src/middleware/ErrorHandlingMiddleware.js";
+import { sequelize } from "./src/db.js";
 
-const express = require("express");
-const app = express();
-const http = require("http");
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const cors = require("cors");
-const PORT = process.env.PORT || 3000;
-const sequelize = require("./db");
-const models = require("./models/models");
-const router = require("./routes/index");
-const errorHandling = require("./middleware/ErrorHandlingMiddleware");
-
-const io = new Server(server, {
+const app: Application = express();
+const server: http.Server = http.createServer(app);
+const io: SocketIOServer = new SocketIOServer(server, {
   cors: {
     origin: [
       "http://localhost:8080",
@@ -26,7 +24,7 @@ const io = new Server(server, {
   },
 });
 
-const {
+import {
   createRoom,
   connectingExistingRoom,
   startGame,
@@ -43,11 +41,13 @@ const {
   dragonTest,
   scamTest,
   averageTest,
-} = require("./socket/gameHandler")(io);
+} from "./src/socket/gameHandler";
 
-const issue2options = {
+const PORT = process.env.PORT || 3000;
+
+const issue2options: cors.CorsOptions = {
   origin: true,
-  methods: ["POST, DELETE", "PUT"],
+  methods: ["POST", "DELETE", "PUT"],
   credentials: true,
   maxAge: 3600,
 };
@@ -56,10 +56,10 @@ app.use(cors(issue2options));
 app.use(express.json());
 app.use("/api", router);
 
-//Обработка ошибок последний middleware
+// Обработка ошибок последний middleware
 app.use(errorHandling);
 
-const start = async () => {
+const start = async (): Promise<void> => {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
@@ -71,7 +71,7 @@ const start = async () => {
   }
 };
 
-const onConnection = (socket) => {
+const onConnection = (socket: SocketIO.Socket): void => {
   socket.on("createRoom", createRoom);
   socket.on("connectingExistingRoom", connectingExistingRoom);
   socket.on("startGame", startGame);
@@ -92,4 +92,6 @@ const onConnection = (socket) => {
 
 io.on("connection", onConnection);
 
-start();
+start().then(() => {
+  console.log(`Сервер работает на порту ${PORT}`);
+});
